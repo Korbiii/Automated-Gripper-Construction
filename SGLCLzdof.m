@@ -33,6 +33,8 @@ CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(connector_radius);
 SG_servo_cage = SGofCPLz(CPL_outside,servo_height+6);
 SG_servo_cage = SGtransrelSG(SG_servo_cage,'','rotx',pi/2,'transy',(servo_height+6)/2);
 
+
+
 CPL_inside = CPLbool('+',PLsquare(servo_width+tol,servo_height+tol),PLtrans(PLsquare(outer_radius*2-6,15),[0,((servo_height/2)-3)/2]));
 SG_inside = SGtrans0(SGofCPLz(CPL_inside,outer_radius*4));
 SG_servo_cage = SGbool('-',SG_servo_cage,SG_inside);
@@ -41,6 +43,7 @@ CPL_servo_stop_inside = CPLbool('-',PLsquare(servo_width+tol,servo_height+tol),P
 SG_servo_stop = SGofCPLz(CPL_servo_stop_inside,2);
 SG_servo_stop = SGtransrelSG(SG_servo_stop,SG_servo_cage,'alignbottom');
 SG_servo_cage = SGcat(SG_servo_stop,SG_servo_cage);
+
 
 %% Screw Holes
 screw_rad = 1.5;
@@ -52,14 +55,16 @@ SG_hole_1 = SGtransrelSG(SG_hole,SG_hole,'transy',-6,'transz',-4);
 SG_hole_2 = SGtransrelSG(SG_hole_1,SG_hole_1,'transz',-24);
 SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_1);
 SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_2);
-
 %%Middle
 CPL_servocage_slice = CPLofSGslice(SG_servo_cage,-10);
 SG_conn = SGof2CPLsz(CPL_connector_slice,CPL_servocage_slice,10);
 SG = SGstack('z',SG_connection,SG_conn,SG_servo_cage);
 
-SGplot(SG);
-SGwriteSTL(SG);
+H_f = [rotx(90) [0;0;60]; 0 0 0 1];
+
+SG = SGTset(SG,'F',H_f);
+SGTplot(SG);
+% SGwriteSTL(SG);
 
 
 end
