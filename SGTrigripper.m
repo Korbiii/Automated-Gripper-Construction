@@ -2,6 +2,8 @@ function [SG] = SGTrigripper()
 clf;
 tol = 0.5;
 
+number_grippers = 3;
+
 %%Top
 outer_radius = 26.5;
 connector_radius = 19/2;
@@ -11,9 +13,9 @@ servo_length = 46.5;
 servo_width = 28.5;
 cable_clearance_start = 10; 
 %% Servocage
-CPL_grip_attach = [-8 -distance_axis-5;8 -distance_axis-5;8 0;-8 0];
+CPL_grip_attach = [-13 -distance_axis-5;13 -distance_axis-5;13 0;-13 0];
 CPL_outer = CPLbool('+',PLtrans(PLsquare(servo_width+8,servo_length+8),[0,-(servo_length-distance_axis)]),[CPL_grip_attach;NaN NaN;PLtransR(CPL_grip_attach,rot(2/3*pi));NaN NaN;PLtransR(CPL_grip_attach,rot(-2/3*pi))]);
-CPL_outer = PLroundcorners(CPL_outer,[2,5,6,9,11,12,13,14],[22,11,11,22,1,1,1,1]);
+CPL_outer = PLroundcorners(CPL_outer,[2,5,6,9,11,12,13,14],[22,1,1,22,1,1,1,1]);
 CPL_inner = CPLbool('+',PLtrans(PLsquare(servo_width+tol,servo_length+tol),[0 -servo_length+distance_axis]),PLtrans(PLsquare(servo_width+10,15),[0 0]));
 CPL_inner = PLroundcorners(CPL_inner,[3,4,9,10],3);
 CPL_top = CPLbool('-',CPL_outer,CPL_inner);
@@ -75,6 +77,18 @@ CPL_slice2 = CPLofSGslice(SG_servocage,min(SG_servocage.VL(:,3))+0.01);
 SG_connection_bracket = SGof2CPLsz(CPL_slice,CPL_servocage_bot,10);
 
 SG = SGstack('z',SG_bracket,SG_connection_bracket,SG_servocage);
+
+height_SG = max(SG.VL(:,3));
+for i=0:number_grippers-1
+	pos_gripper = PLtransR([0 -45],i*(2/3*pi));
+	H_f = [rotx(90)*roty(-90)*roty((360/number_grippers)*i) [pos_gripper';height_SG-5]; 0 0 0 1];
+	SG = SGTset(SG,append('F',num2str(i+1)),H_f);
+end
+
+H_f = [rotz(0) [0;0;height_SG]; 0 0 0 1];
+SG = SGTset(SG,'F',H_f);
+
+
 SGTplot(SG);
 
 
@@ -235,4 +249,3 @@ switch plane
         error(plane + " plane doesnt exist");
 end
 end
-
