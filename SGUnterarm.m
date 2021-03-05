@@ -1,27 +1,53 @@
 function [SG] = SGUnterarm()
 clf;
-CPL_cable_slot = PLkidney(22.5,15,pi);
-CPL_screw_holes = CPLcopyradial(PLcircle(1.6),10.5,8);
-PLlayer1 = [PLcircle(40);NaN NaN;PLcircle(37.7);NaN NaN;PLcircle(19);NaN NaN;PLcircle(7.5)];
+%% Parameters
+conn_screw_circle_radius = 10.5;
+
+
+
+
+%% Fix Values
+inner_run = 29.7;
+outer_run = 37.7;
+run_heigth = 17;
+run_heigth_2 = 6;
+wall_thick = 2.5;
+screw_radius = 1.6;
+screw_head_radius = 3;
+cable_gap = 7;
+servo_mid_radius = 7.5;
+servo_attach_radius = 19;
+
+
+outer_radius = outer_run+wall_thick;
+inner_radius = conn_screw_circle_radius + screw_head_radius + cable_gap + wall_thick; 
+CPL_bottom_connection = PLsquare(outer_radius-inner_radius,run_heigth+cable_gap*2);
+CPL_bottom_connection = CPLbool('-',CPL_bottom_connection,PLtrans(PLsquare(outer_run-inner_run,run_heigth),[0 -(run_heigth+cable_gap*2-run_heigth)/2]));
+CPL_bottom_connection = CPLbool('-',CPL_bottom_connection,PLtrans(PLsquare(inner_run-inner_radius,run_heigth_2),[-(outer_radius-inner_radius-inner_run+inner_radius)/2 -(run_heigth+cable_gap*2-run_heigth_2)/2]));
+CPL_bottom_connection = PLroundcorners(CPL_bottom_connection,[1,2,3,4,7,8],2);
+CPL_bottom_connection_cable_gap = CPLbool('-',CPL_bottom_connection,PLtrans(PLsquare(outer_radius,cable_gap),[0 10]));
+CPL_bottom_connection = PLtrans(CPL_bottom_connection,[(inner_radius+outer_radius)/2 0]);
+CPL_bottom_connection_cable_gap = PLtrans(CPL_bottom_connection_cable_gap,[(inner_radius+outer_radius)/2 0]);
+SG_bottom_conn = SGofCPLrota(CPL_bottom_connection,1.75*pi,false,1.125*pi);
+SG_bottom_conn_cable_gap = SGofCPLrota(CPL_bottom_connection_cable_gap,0.25*pi,false,-1.125*pi);
+SG_bottom_conn = SGcat(SG_bottom_conn,SG_bottom_conn_cable_gap);
+
+CPL_cable_slot = PLkidney(inner_radius+0.5,inner_radius-cable_gap,pi);
+CPL_screw_holes = CPLcopyradial(PLcircle(screw_radius),conn_screw_circle_radius,8);
+PLlayer1 = [PLcircle(servo_attach_radius);NaN NaN;PLcircle(servo_mid_radius)];
 PLlayer1 = CPLbool('-',PLlayer1,CPL_cable_slot);
 PLlayer1 = CPLbool('-',PLlayer1,CPL_screw_holes);
 SGlayer1 = SGofCPLz(PLlayer1,6.325);
 
-PLlayer2 = [PLcircle(40);NaN NaN;PLcircle(37.7);NaN NaN;PLcircle(29.7)];
-PLlayer2 = CPLbool('-',PLlayer2,CPL_cable_slot);
-PLlayer2 = CPLbool('-',PLlayer2,CPL_screw_holes);
-SGlayer2 = SGofCPLz(PLlayer2,11.2);
-
-PLlayer3 = [PLcircle(40)];
+CPL_screw_holes_heads = CPLcopyradial(PLcircle(screw_head_radius),conn_screw_circle_radius,8);
+PLlayer3 = [PLcircle(inner_radius)];
 PLlayer3 = CPLbool('-',PLlayer3,CPL_cable_slot);
-PLlayer3 = CPLbool('-',PLlayer3,CPL_screw_holes);
-SGlayer3 = SGofCPLz(PLlayer3,11.2);
+PLlayer3 = CPLbool('-',PLlayer3,CPL_screw_holes_heads);
+SGlayer3 = SGofCPLz(PLlayer3,13);
 
-PLlayer4 = [PLcircle(40);NaN NaN;PLcircle(22.5)];
-SGlayer4 = SGofCPLz(PLlayer4,15);
-
-SG = SGstack('z',SGlayer1,SGlayer2,SGlayer3,SGlayer4);
-SGplot(SG);
+SG_mid = SGstack('z',SGlayer1,SGlayer3);
+SG_bottom_conn = SGcat(SG_bottom_conn,SGtransrelSG(SG_mid,SG_bottom_conn,'alignbottom'));
+SGplot(SG_bottom_conn);
 
 
 end
@@ -45,4 +71,96 @@ for i=2:nargin-1
             SG = SGcat(SG,SGleft(varargin{i},SG));
     end
 end
+end
+
+%%  [PL] = PLroundcorners(PL,indices,varargin)
+%	=== INPUT PARAMETERS ===
+%	PL:     Contour of PL you to search throguh
+%	=== OUTPUT RESULTS ======
+function [PL] = PLroundcorners(PL,corner_numbers,varargin)
+radius = ones(1,size(corner_numbers,2)); if nargin>=3 && ~isempty(varargin{1}); radius=varargin{1}; end
+connection = []; if nargin >=4 && ~isempty(varargin{2}); connection = varargin{2}; end
+if(size(radius,1)==1)
+    radius = repmat(radius,1,size(corner_numbers,2));
+end
+try
+    PL_save = CPLselectinout(PL,1);
+catch
+    PL_save =[];
+end
+
+PL = CPLselectinout(PL,0);
+
+corners = {};
+for i=1:size(corner_numbers,2)
+    if corner_numbers(i) == 1
+        v1 = PL(corner_numbers(i)+1,:)-PL(corner_numbers(i),:);
+        v1 = v1/norm(v1);
+        v2 = PL(size(PL,1),:)-PL(corner_numbers(i),:);
+        v2 = v2/norm(v2);
+    elseif corner_numbers(i) == size(PL,1)
+        v1 = PL(1,:)-PL(corner_numbers(i),:);
+        v1 = v1/norm(v1);
+        v2 = PL(corner_numbers(i)-1,:)-PL(corner_numbers(i),:);
+        v2 = v2/norm(v2);
+    else
+        v1 = PL(corner_numbers(i)+1,:)-PL(corner_numbers(i),:);
+        v1 = v1/norm(v1);
+        v2 = PL(corner_numbers(i)-1,:)-PL(corner_numbers(i),:);
+        v2 = v2/norm(v2);
+    end
+    following_point = PL(corner_numbers(i),:)+(v1*abs(radius(i)));
+    trailing_point = PL(corner_numbers(i),:)+(v2*abs(radius(i)));
+    corners{end+1} = PLcircarc2([trailing_point;PL(corner_numbers(i),:);following_point]);
+    [is_member,pos] = ismember(corner_numbers(i),abs(connection));
+    if is_member
+        if connection(pos) <0
+            corners{end} = PLmirror0(corners{end},[trailing_point;PL(corner_numbers(i),:)],1);
+        else
+            corners{end} = PLmirror0(corners{end},[following_point;PL(corner_numbers(i),:)],1);
+        end
+    end
+end
+for i=1:size(corner_numbers,2)
+    if corner_numbers(i) == 1
+        PL = [corners{i};PL(corner_numbers(i)+1:end,:)];
+    elseif corner_numbers(i)==size(PL,1)
+        PL = [PL(1:corner_numbers(i)-1,:);corners{i}];
+    else
+        PL = [PL(1:corner_numbers(i)-1,:);corners{i};PL(corner_numbers(i)+1:end,:)];
+    end
+    corner_numbers = corner_numbers + size(corners{i},1)-1;
+    
+end
+if ~isempty(PL_save)
+    PL = [PL;NaN NaN;PL_save];
+end
+end
+
+%%  [PL] = PLcircarc2(PL,radius)
+%	=== INPUT PARAMETERS ===
+
+%	=== OUTPUT RESULTS ======
+function [PL] = PLcircarc2(PL)
+v1 = PL(1,:)-PL(2,:);
+v1 = v1/norm(v1);
+v2 = PL(3,:)-PL(2,:);
+v2 = v2/norm(v2);
+
+v1_n = v1*rot(pi/2);
+v2_n = v2*rot(pi/2);
+
+cp = cross2edges(PL(1,:),v1_n,PL(3,:),v2_n);
+dist = min([pdist2(PL(1,:),cp),pdist2(PL(3,:),cp)]);
+
+v3 = PL(1,:)-cp;
+v4 = PL(3,:)-cp;
+v5 = [1 0];
+
+phi_1 = -acos2(v3,v5);
+phi_2 = -acos2(v4,v3);
+
+PL_circle = PLtrans(PLcircseg(dist,'',phi_1,phi_1+phi_2),cp);
+PL = PL_circle;
+
 end
