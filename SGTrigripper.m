@@ -89,7 +89,7 @@ H_f = [rotz(0) [0;0;height_SG]; 0 0 0 1];
 SG = SGTset(SG,'F',H_f);
 
 
-SGTplot(SG);
+% SGTplot(SG);
 
 
 end

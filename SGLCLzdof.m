@@ -26,11 +26,34 @@ servo_height = 34;
 servo_length = 46.5;
 servo_width = 28.5;
 cable_clearance_start = 3; 
+cable_gap = 10;
+cable_gap_width = 20;
 
 
 CPL_outside = CPLconvexhull([PLcircle(outer_radius);[-outer_radius,-distance_axis-2;outer_radius,-distance_axis-2]]);
 CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(connector_radius);[-connector_radius,30;connector_radius,30]]));
-SG_servo_cage = SGofCPLz(CPL_outside,servo_height+6);
+
+CPL_temp = CPL_outside;
+[~, idx1] = max(CPL_temp(:,2));
+CPL_temp(idx1,2)    = -Inf;
+[~, idx2] = max(CPL_temp(:,2));
+
+CPL_outside = PLroundcorners(CPL_outside,[idx1,idx2],1);
+
+CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo_width+2*cable_gap,servo_length*2));
+CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo_width,servo_length*2));
+
+SG_front = SGof2CPLsz(CPL_outside,CPL_outside,3);
+SG_1 = SGofCPLz(CPL_outside_w_servo_slot,cable_clearance_start);
+SG_2 = SGofCPLz(CPL_outside_w_cable_slots,cable_gap_width);
+SG_3 = SGofCPLz(CPL_outside_w_servo_slot,servo_height-cable_gap-cable_clearance_start);
+SG_back = SGof2CPLsz(CPL_outside,CPL_outside,3);
+
+SG_top_cage = SGstack('z',SG_front,SG_1,SG_2,SG_3,SG_back);
+
+SGplot(SG_top_cage)
+
+ SG_servo_cage = SGofCPLz(CPL_outside,servo_height+6);
 SG_servo_cage = SGtransrelSG(SG_servo_cage,'','rotx',pi/2,'transy',(servo_height+6)/2);
 
 
@@ -61,10 +84,10 @@ SG_conn = SGof2CPLsz(CPL_connector_slice,CPL_servocage_slice,10);
 SG = SGstack('z',SG_connection,SG_conn,SG_servo_cage);
 
 H_f = [rotx(90) [0;0;60]; 0 0 0 1];
-
 SG = SGTset(SG,'F',H_f);
-SGTplot(SG);
-% SGwriteSTL(SG);
+H_b = [rotx(180) [0;0;0]; 0 0 0 1];
+SG = SGTset(SG,'B',H_b);
+SGplot(SG);
 
 
 end

@@ -1,4 +1,4 @@
-function [SG] = SGUnterarm()
+function [SGs] = SGUnterarm()
 clf;
 %% Parameters
 conn_screw_circle_radius = 10.5;
@@ -45,6 +45,7 @@ SGlayer3 = SGofCPLz(PLlayer3,13);
 
 SG_mid = SGstack('z',SGlayer1,SGlayer3);
 SG_bottom_conn = SGcat(SG_bottom_conn,SGtransrelSG(SG_mid,SG_bottom_conn,'alignbottom'));
+
 
 %% ARM
 width_bottom = 55;
@@ -93,7 +94,8 @@ end
 
 %% Top Servo mount
 tol = 0.5;
-screw_rad = 1.5;
+screw_R = 1.5;
+screw_head_R = 3; 
 servo_width = 28.5+tol;
 servo_lenght = 46.5+tol;
 servo_height = 34+tol;
@@ -103,8 +105,12 @@ screw_length = 14;
 cable_gap = 10;
 cable_gap_width = 20;
 
+screw_hor_distance = 16;
+screw_ver_distance = 12;
+
 CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLtrans([-servo_width/2-3 0;servo_width/2+5 0],[0 -servo_lenght+servo_shaft_offs-screw_length+5])]);
-CPL_out = PLroundcorners(CPL_out,[3,4],3);
+idx = find(CPL_out(:,2) == min(CPL_out(:,2)));
+CPL_out = PLroundcorners(CPL_out,idx',3);
 CPL_in = PLtrans(PLsquare(servo_width,servo_lenght),[0 -((servo_lenght/2)-servo_shaft_offs)+0.5*tol]);
 CPL_in_ledge = PLtrans(PLsquare(servo_width,servo_lenght-4),[0 -(((servo_lenght-4)/2)-servo_shaft_offs)]);
 CPL_cable_gap = PLtrans(PLsquare(servo_width+cable_gap,cable_gap_width),[0 0]);
@@ -112,20 +118,31 @@ CPL_in = CPLbool('+',CPL_in,CPL_cable_gap);
 CPL_in_ledge = CPLbool('+',CPL_in_ledge,CPL_cable_gap);
 CPL_in = PLroundcorners(CPL_in,[2,3,4,9,10,11],cable_gap/4);
 CPL_in_ledge = PLroundcorners(CPL_in_ledge,[2,3,4,9,10,11],cable_gap/4);
-CPL_in = CPLbool('+',CPL_in,PLtrans(PLsquare(servo_width-4,servo_lenght+8),[0 -(((servo_lenght+8)/2)-servo_shaft_offs-4)]));
+CPL_in = CPLbool('+',CPL_in,PLtrans(PLsquare(servo_width-4,servo_lenght+8),[0 -(((servo_lenght+8)/2)-servo_shaft_offs)+0.5*tol+4]));
 
 SG_bottom_w_ledge = SGofCPLz([CPL_out;NaN NaN;CPL_in_ledge],2);
-SG_bottom = SGofCPLz([CPL_out;NaN NaN;CPL_in],servo_height);
+CPL_bottom = [CPL_out;NaN NaN;CPL_in];
+CPL_screw_cuts = CPLbool('-',PLsquare(screw_hor_distance+2*screw_head_R,servo_lenght*2),PLsquare(screw_hor_distance-2*screw_head_R,servo_lenght*2));
+CPLout_w_screw_gaps = CPLbool('-',CPL_bottom,CPL_screw_cuts);
+SG_bottom = SGofCPLz(CPLout_w_screw_gaps,servo_height);
 
-% Screw Holes
-SG_hole = SGofCPLz(PLcircle(screw_rad),servo_lenght+10);
-SG_HOLE = SGofCPLz(PLcircle(screw_rad*2),30);
-SG_hole = SGstackb('z',SG_HOLE,SG_hole,SG_HOLE);
+CPL_screw_inserts_screw =  CPLbool('-',PLsquare(screw_hor_distance+2*screw_head_R,servo_height),PLsquare(screw_hor_distance-2*screw_head_R,servo_height));
+CPL_screw_inserts_screw =  CPLbool('-',CPL_screw_inserts_screw,PLtrans(PLcircle(screw_R),[screw_hor_distance/2 screw_ver_distance/2]));
+CPL_screw_inserts_screw =  CPLbool('-',CPL_screw_inserts_screw,PLtrans(PLcircle(screw_R),[-screw_hor_distance/2 screw_ver_distance/2]));
+CPL_screw_inserts_screw_head =  CPLbool('-',PLsquare(screw_hor_distance+2*screw_head_R,servo_height),PLsquare(screw_hor_distance-2*screw_head_R,servo_height));
+CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle(screw_head_R),[screw_hor_distance/2 screw_ver_distance/2]));
+CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle(screw_head_R),[-screw_hor_distance/2 screw_ver_distance/2]));
 
-SG_hole_left = SGtransrelSG(SG_hole,SG_bottom,'roty',pi/2,'rotz',pi/2,'transy',-servo_shaft_offs-(servo_lenght+10+60)/2,'aligntop',-11+screw_rad,'centerx',-8);
-SG_bottom = SGbool3('-',SG_bottom,SG_hole_left);
-SG_hole_right = SGtransrelSG(SG_hole,SG_bottom,'roty',pi/2,'rotz',pi/2,'transy',-servo_shaft_offs-(servo_lenght+10+60)/2,'aligntop',-11+screw_rad,'centerx',8);
-SG_bottom = SGbool3('-',SG_bottom,SG_hole_right);
+SG_screw_insert_screw = SGofCPLz(CPL_screw_inserts_screw,5);
+SG_screw_inserts_screw_head = SGofCPLz(CPL_screw_inserts_screw_head,0.01);
+
+SG_screw_inserts = SGstack('z',SG_screw_insert_screw,SG_screw_inserts_screw_head);
+SG_screw_inserts_1 = SGtransrelSG(SG_screw_inserts,SG_bottom,'rotx',pi/2,'aligntop','transy',servo_shaft_offs+0.5*tol-servo_lenght-4);
+SG_screw_inserts_2 = SGtransrelSG(SG_screw_inserts,SG_bottom,'rotx',pi/2,'rotz',pi,'aligntop','transy',servo_shaft_offs+0.5*tol+4);
+SG_screw_inserts_1 = SGfittoOutsideCPL(SG_screw_inserts_1,CPL_out,'y-');
+SG_screw_inserts_2 = SGfittoOutsideCPL(SG_screw_inserts_2,CPL_out,'y+');
+SG_bottom  = SGcat(SG_screw_inserts_1,SG_screw_inserts_2,SG_bottom);
+
 
 shift = min(SG_bottom.VL(:,2));
 min_z_bott_con = min(SG_conn_arm_bottom.VL(:,2));
@@ -135,7 +152,7 @@ SG_servo_attachment = SGstack('z',SG_connection,SGtrans(SG_bottom_w_ledge,[0 ser
 
 SG_arm = SGstack('z',SG_conn_arm_bottom,SG_bottom_half,SG_top_half,SG_servo_attachment);
 SG_arm = SGtransrelSG(SG_arm,SG_bottom_conn,'rotz',-pi/2,'roty',-pi/2,'transx',-outer_radius);
-% SGplot(SG_servo_attachment);
+
 SG = SGcat(SG_arm,SG_bottom_conn);
 
 %%Lid
@@ -158,10 +175,19 @@ SG_slide_in_attachment_2 = SGtransrelSG(SG_slide_in_attachments,SG_lid,'rotx',pi
 
 SG_lid = SGcat(SG_lid,SG_slide_in_attachment_1,SG_slide_in_attachment_2);
 
-SGplot(SG_lid);
+H_b = [rotx(0) [0;0;min_z_bott_con]; 0 0 0 1];
+SG = SGTset(SG,'B',H_b);
+H_f = [roty(-90) [min(SG.VL(:,1));0;max(SG.VL(:,3))-outer_radius_ser]; 0 0 0 1];
+SG = SGTset(SG,'F',H_f);
+
+
+H_b_lid = [roty(180)*rotz(-90) [0;0;0]; 0 0 0 1];
+SG_lid = SGTset(SG_lid,'B',H_b_lid);
+H_f_lid = [rotx(0) [0;0;3]; 0 0 0 1];
+SG_lid = SGTset(SG_lid,'F',H_f_lid);
+
+SGs = {SG,SG_lid};
 SGplot(SG);
-
-
 
 
 
