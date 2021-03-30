@@ -1,94 +1,86 @@
-function [SG] = SGLCLzdof()
+function [SG,CPL] = SGLCLzdof(servo_name)
 clf;
+servo_name = lower(servo_name);
+load Servos;
+switch servo_name
+	case 'sm40bl'
+		servo = Servos.sm40;
+	case 'sm85bl'
+		servo = Servos.sm85;
+	otherwise
+		error('Only SM40BL and SM85BL implemented');
+end
 tol = 0.5;
-
-%% Connection
-diameter_connection = 46.5;
-screw_hole_radius = 2;
-hole_circle_radius = 7.5;
-screw_number = 4;
-
-CPL_connection = PLcircle(diameter_connection/2);
-CPL_screw_holes = CPLcopyradial(PLcircle(screw_hole_radius),hole_circle_radius,screw_number);
-CPL_cable_slot = PLkidney(hole_circle_radius+screw_hole_radius+2,hole_circle_radius+screw_hole_radius+2+6,3/2*pi);
-CPL_connection = CPLbool('-',CPL_connection,CPL_screw_holes);
-CPL_connection = CPLbool('-',CPL_connection,CPL_cable_slot);
-SG_connection = SGofCPLz(CPL_connection,9);
-
-CPL_connector_slice = [PLcircle(diameter_connection/2);NaN NaN;PLcircle(hole_circle_radius+screw_hole_radius+2+6)];
-
+screw_length = 14-3;
 
 %% Servomount
-outer_radius = 26.5;
-connector_radius = 19/2;
-distance_axis = 35.25;
-servo_height = 34;
-servo_length = 46.5;
-servo_width = 28.5;
-cable_clearance_start = 3; 
-cable_gap = 10;
-cable_gap_width = 20;
+distance_axis = servo.length-servo.shaft_offs;
+servo.width = servo.width+tol;
+servo.length = servo.length+tol;
+servo.height = servo.height+tol;
+outer_radius = servo.width/2+Servos.cable_gap+3;
+start_cable_gap = servo.height/2+min(servo.PL_cable_gap_ver(:,2));
 
 
 CPL_outside = CPLconvexhull([PLcircle(outer_radius);[-outer_radius,-distance_axis-2;outer_radius,-distance_axis-2]]);
-CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(connector_radius);[-connector_radius,30;connector_radius,30]]));
+CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(servo.connect_R);[-servo.connect_R,30;servo.connect_R,30]]));
 
-CPL_temp = CPL_outside;
-[~, idx1] = max(CPL_temp(:,2));
-CPL_temp(idx1,2)    = -Inf;
-[~, idx2] = max(CPL_temp(:,2));
+CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo.width+2*Servos.cable_gap,servo.length*2));
+CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo.width,servo.length*2));
+CPL_outside_w_screw_slots = CPL_outside_w_servo_slot;
 
-CPL_outside = PLroundcorners(CPL_outside,[idx1,idx2],1);
 
-CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo_width+2*cable_gap,servo_length*2));
-CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo_width,servo_length*2));
+if(~isnan(servo.screw_mount_x))
+	shaft_mid_Dis = servo.length/2-servo.shaft_offs;
+	bot = min(servo.screw_mount_x(:,2))-servo.screw_R;
+	top = max(servo.screw_mount_x(:,2))+servo.screw_R;
+	CPL_outside_w_screw_slots = CPLbool('-',CPL_outside_w_screw_slots,PLtrans(PLsquare(outer_radius*2,top-bot),[0 -shaft_mid_Dis-top/2]));
+	
+	x=2;
+elseif(~isnan(servo.screw_mount_z))
+	%%TODO
+end
+
+
 
 SG_front = SGof2CPLsz(CPL_outside,CPL_outside,3);
-SG_1 = SGofCPLz(CPL_outside_w_servo_slot,cable_clearance_start);
-SG_2 = SGofCPLz(CPL_outside_w_cable_slots,cable_gap_width);
-SG_3 = SGofCPLz(CPL_outside_w_servo_slot,servo_height-cable_gap-cable_clearance_start);
+SG_1 = SGofCPLz(CPL_outside_w_servo_slot,start_cable_gap);
+SG_2 = SGofCPLz(CPL_outside_w_cable_slots,Servos.cable_gap_width);
+SG_3 = SGofCPLz(CPL_outside_w_screw_slots,servo.height-Servos.cable_gap_width-start_cable_gap);
 SG_back = SGof2CPLsz(CPL_outside,CPL_outside,3);
 
-SG_top_cage = SGstack('z',SG_front,SG_1,SG_2,SG_3,SG_back);
+if(~isnan(servo.screw_mount_x))
+	CPL_screws_small = PLsquare(servo.height-Servos.cable_gap_width-start_cable_gap,top-bot);
+% 	screw_hols = PLtrans(CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_x),[0 0])
+	SG_screws_small = SGofCPLz(CPL_screws_small,screw_length);
+	SG_screws_small = SGtransrelSG(SG_screws_small,SG_3,'roty',pi/2,'transy',-shaft_mid_Dis-top/2,'transx',servo.width/2,'aligntop');
+	SG_3 = SGcat(SG_3,SG_screws_small);
+elseif(~isnan(servo.screw_mount_z))
+	%%TODO
+end
 
-SGplot(SG_top_cage)
+SG = SGstack('z',SG_front,SG_1,SG_2,SG_3,SG_back);
+SG = SGtransrelSG(SG,'','rotx',pi/2,'centery');
 
- SG_servo_cage = SGofCPLz(CPL_outside,servo_height+6);
-SG_servo_cage = SGtransrelSG(SG_servo_cage,'','rotx',pi/2,'transy',(servo_height+6)/2);
-
-
-
-CPL_inside = CPLbool('+',PLsquare(servo_width+tol,servo_height+tol),PLtrans(PLsquare(outer_radius*2-6,15),[0,((servo_height/2)-3)/2]));
-SG_inside = SGtrans0(SGofCPLz(CPL_inside,outer_radius*4));
-SG_servo_cage = SGbool('-',SG_servo_cage,SG_inside);
-
-CPL_servo_stop_inside = CPLbool('-',PLsquare(servo_width+tol,servo_height+tol),PLsquare(servo_width+tol,servo_height+tol-6));
-SG_servo_stop = SGofCPLz(CPL_servo_stop_inside,2);
-SG_servo_stop = SGtransrelSG(SG_servo_stop,SG_servo_cage,'alignbottom');
-SG_servo_cage = SGcat(SG_servo_stop,SG_servo_cage);
-
+CPL = CPLconvexhull(CPLofSGslice(SG,min(SG.VL(:,2))));
+CPL = [CPL;NaN NaN;CPLgrow(CPL,4)];
 
 %% Screw Holes
-screw_rad = 1.5;
-SG_hole = SGofCPLz(PLcircle(screw_rad),servo_width+10);
-SG_HOLE = SGofCPLz(PLcircle(screw_rad*2),servo_width);
-SG_hole = SGstackb('z',SG_HOLE,SG_hole,SG_HOLE);
-SG_hole = SGtransrelSG(SG_hole,SG_hole,'roty',pi/2,'centerx');
-SG_hole_1 = SGtransrelSG(SG_hole,SG_hole,'transy',-6,'transz',-4);
-SG_hole_2 = SGtransrelSG(SG_hole_1,SG_hole_1,'transz',-24);
-SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_1);
-SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_2);
-%%Middle
-CPL_servocage_slice = CPLofSGslice(SG_servo_cage,-10);
-SG_conn = SGof2CPLsz(CPL_connector_slice,CPL_servocage_slice,10);
-SG = SGstack('z',SG_connection,SG_conn,SG_servo_cage);
+% screw_rad = 1.5;
+% SG_hole = SGofCPLz(PLcircle(screw_rad),servo.width+10);
+% SG_HOLE = SGofCPLz(PLcircle(screw_rad*2),servo.width);
+% SG_hole = SGstackb('z',SG_HOLE,SG_hole,SG_HOLE);
+% SG_hole = SGtransrelSG(SG_hole,SG_hole,'roty',pi/2,'centerx');
+% SG_hole_1 = SGtransrelSG(SG_hole,SG_hole,'transy',-6,'transz',-4);
+% SG_hole_2 = SGtransrelSG(SG_hole_1,SG_hole_1,'transz',-24);
+% SG_servo_cage = SGbool('-',SG_top_cage,SG_hole_1);
+% SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_2);
+% 
 
-H_f = [rotx(90) [0;0;60]; 0 0 0 1];
+H_f = [rotx(90) [0;0;0]; 0 0 0 1];
 SG = SGTset(SG,'F',H_f);
-H_b = [rotx(180) [0;0;0]; 0 0 0 1];
-SG = SGTset(SG,'B',H_b);
-SGplot(SG);
 
+SG = SGtransrelSG(SG,'','alignbottom');
 
 end
 

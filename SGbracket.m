@@ -17,7 +17,7 @@ CPL_bracket_small = CPLconvexhull([PLcircle(servo.width/2+8);-(servo.width/2+8) 
 CPL_bracket = CPLbool('-',CPL_bracket,CPL_screw_holes);
 CPL_bracket_small = CPLbool('-',CPL_bracket_small,CPL_screw_holes);
 
-CPL_bracket_w_cut = CPLbool('-',CPL_bracket,PLtrans(PLroundcorners(PLsquare(servo.attach_top_R,servo.width+10),[1,2,3,4],servo.attach_top_R/2),[0 -10]));
+CPL_bracket_w_cut = CPLbool('-',CPL_bracket,PLtrans(PLroundcorners(PLsquare(servo.attach_top_R*2,servo.width+10),[1,2,3,4],servo.attach_top_R/2),[0 -10]));
 
 SG_bracket_w_cut = SGofCPLz(CPL_bracket_w_cut,servo.attach_top_H);
 SG_bracket = SGof2CPLsz(CPL_bracket,CPL_bracket_small,2);
@@ -36,5 +36,6 @@ SG = SGTset(SG,'B',H_b);
 CPL = CPLconvexhull(CPLofSGslice(SG,max(SG.VL(:,3))-0.01));
 gap_bracket = screw_length-missing_screw_length;
 CPL = [CPL;NaN NaN;PLsquare(2*max(CPL(:,1)-5),2*max(CPL(:,2)-gap_bracket-5))];
+
 
 end
