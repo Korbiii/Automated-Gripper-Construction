@@ -31,7 +31,7 @@ for i=1:size(corner_numbers,2)
         v1 = v1/norm(v1);
         v2 = PL(corner_numbers(i)-1,:)-PL(corner_numbers(i),:);
         v2 = v2/norm(v2);
-    end
+	end	
     following_point = PL(corner_numbers(i),:)+(v1*abs(radius(i)));
     trailing_point = PL(corner_numbers(i),:)+(v2*abs(radius(i)));
     corners{end+1} = PLcircarc2([trailing_point;PL(corner_numbers(i),:);following_point]);
