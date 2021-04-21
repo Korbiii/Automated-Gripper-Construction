@@ -12,15 +12,15 @@ function [SG] = SGgripper()
 
 %%Inputs
 attach_width = 20;
-max_grip_R =50;
+% max_grip_R =50;
 
-gripper_number = 4;
-ang = 360/gripper_number;
-gripper_angles =[];
-for i = 0 : gripper_number-1
-    gripper_angles = [gripper_angles ang*i];
-    
-end
+% gripper_number = 3;
+% ang = 360/gripper_number;
+% gripper_angles =[];
+% for i = 0 : gripper_number-1
+%     gripper_angles = [gripper_angles ang*i];
+%     
+% end
 
 
 % 
@@ -29,16 +29,16 @@ end
 % max_grip_R =55;
 % gripper_angles = [160,200,0];
 % % 
-% gripper_number = 2;
-% max_grip_R =55;
-% gripper_angles = [20,160,240,300];
+gripper_number = 3;
+max_grip_R =55;
+gripper_angles = [0,130,230,300];
 
 
 conn_type  = 'xy';
 conn_servo_name = "sm40bl";
 finger_length_low = 65;
 
-finger_tip_length = 50;
+finger_tip_length = 45;
 
 clf;
 % servo_name = lower(servo_name);
@@ -136,6 +136,15 @@ for i = 1 : num_CPls
 end
 CPL_screw_holes = CPLatPL(PLcircle(1.5),screw_pos);
 CPL_top_w_screws = CPLbool('-',CPL_top,CPL_screw_holes);
+
+PL_screw_hole = PLtrans(PLcircle(1.6),[0 -max_grip_R+5]);
+
+for i=1:gripper_number
+	CPL_top_w_screws = CPLbool('-',CPL_top_w_screws,PLtransR(PL_screw_hole,rot(deg2rad(gripper_angles(i)))));
+end
+
+
+
 SG_top = SGofCPLz(CPL_top_w_screws,top_height);
 
 CPL_servocage_bot = CPLbool('+',PLtrans(PLsquare(servo.width+8,servo.length+8),[0,-(servo.length-distance_axis)]),PLgrow(CPL_inner,-2));
@@ -154,7 +163,7 @@ SG_servo_stop = SGtransrelSG(SG_servo_stop,SG_servocage,'alignbottom');
 
 %% ================================================================ 3D-FDM
 CPL_print_help = CPLconvexhull(CPL_servo_stop);
-SG_print_help = SGofCPLz(CPL_print_help,0.4);
+SG_print_help = SGofCPLz(CPL_print_help,0.3);
 SG_print_help = SGtransrelSG(SG_print_help,SG_servo_stop,'aligntop');
 SG_servo_stop = SGcat(SG_servo_stop,SG_print_help);
 % ================================================================= 3D-FDM
@@ -197,15 +206,24 @@ CPL_lid_outer = CPLbool('-',CPL_lid_outer,PLcircle(servo.connect_R));
 SG_overhang = SGofCPLz(CPL_lid_outer_overhang,3);
 
 CPL_lid_outer = CPLbool('-',CPL_lid_outer,CPL_screw_holes);
+CPL_lid_outer_heads = CPL_lid_outer;
+PL_screw_hole = PLtrans(PLcircle(1.6),[0 -max_grip_R+5]);
+PL_screw_head_hole = PLtrans(PLcircle(3),[0 -max_grip_R+5]);
+
+for i=1:gripper_number
+	CPL_lid_outer = CPLbool('-',CPL_lid_outer,PLtransR(PL_screw_hole,rot(deg2rad(gripper_angles(i)))));
+	CPL_lid_outer_heads = CPLbool('-',CPL_lid_outer_heads,PLtransR(PL_screw_head_hole,rot(deg2rad(gripper_angles(i)))));
+end
 SG_lid = SGofCPLz(CPL_lid_outer,1);
-SG_lid = SGstack('z',SG_overhang,SG_lid);
+SG_lid_HH = SGofCPLz(CPL_lid_outer_heads,2.5);
+SG_lid = SGstack('z',SG_overhang,SG_lid,SG_lid_HH);
 
 CPL_lid_top = CPLbool('-',CPL_lid_outer,PLcircle(servo.connect_R+2));
 CPL_guide = PLtrans(PLsquare(28,max_grip_R-4),[0 -max_grip_R/2+2]);
 CPL_guide_cutout_back = PLtrans(PLsquare(18,max_grip_R),[0 -max_grip_R/2-0.1]);
 
-CPL_guide_insert = [-14 0;-14 5;-9 5];
-SG_guide_insert = SGofCPLz(CPL_guide_insert,max_grip_R-((servo.connect_R+2*5.5+2))-4);
+CPL_guide_insert = [-14.01 0;-14.01 5;-9 5];
+SG_guide_insert = SGofCPLz(CPL_guide_insert,max_grip_R-((servo.connect_R+2*5.5+2))-4+0.1);
 SG_guide_insert = SGtransrelSG(SG_guide_insert,'','rotx',pi/2,'transy',-(servo.connect_R+2*5.5+2),'aligntop');
 SG_guide_insert = SGcat(SG_guide_insert,SGmirror(SG_guide_insert,'yz'));
 SG_guide_inserts = [];
@@ -260,9 +278,49 @@ CPL_mid_rotator_screw_heads = CPLbool('-',CPL_mid_rotator_c,CPL_screw_head_patte
 SG_mid_rotator_top_screw_heads = SGofCPLz(CPLbool('-',CPL_mid_rotator_screw_heads,PLsquare(servo.attach_top_R*2,500)),2);
 SG_mid_rotator = SGstack('z',SG_mid_rotator,SG_mid_rotator_top,SG_mid_rotator_top_screw_heads);
 
+%% FINGERLEVER
+
+disk_R = servo.connect_R+2*5.5+2;
+
+CPL_fl_attach_mid_bot = CPLbool('x',PLsquare((servo.attach_top_R*2)-2*tol,500),PLcircle(servo.connect_R+tol));
+CPL_fl_attach_mid_bot = CPLbool('-',CPL_fl_attach_mid_bot,CPL_screw_pattern);
+
+
+CPL_fl_attach_cut_out = CPLbool('-',PLcircle(servo.connect_R+tol),PLsquare((servo.attach_top_R*2)-2*tol,500));
+CPL_fl_attach_mid_top = CPLbool('-',PLcircle(disk_R),CPL_fl_attach_cut_out);
+
+CPL_fl_attach_mid_top_TH = CPLbool('-',CPL_fl_attach_mid_top,CPL_screw_pattern);
+CPL_fl_attach_mid_top_HH = CPLbool('-',CPL_fl_attach_mid_top,CPL_screw_head_pattern);
+
+SG_fl_bot= SGofCPLz(CPL_fl_attach_mid_bot,4);
+SG_fl_top_TH= SGofCPLz(CPL_fl_attach_mid_top_TH,3);
+SG_fl_top_HH= SGofCPLz(CPL_fl_attach_mid_top_HH,2);
+
+SG_fl_mid = SGstack('z',SG_fl_bot,SG_fl_top_TH,SG_fl_top_HH);
+
+CPL_fl_lever = CPLconvexhull([PLtrans(PLcircle(8),[0 max_grip_R]);PLtrans(PLcircle(5),[0 disk_R])]);
+CPL_fl_lever = CPLbool('-',CPL_fl_lever,PLcircle(disk_R));
+
+CPL_fl_lever_small = CPLbool('-',CPL_fl_lever,PLcircle(max_grip_R-20));
+CPL_fl_lever_small_small = CPLbuffer(CPL_fl_lever_small,-5);
+
+CPL_fl_lever_small = CPLaddauxpoints(CPL_fl_lever_small,1);
+CPL_fl_lever_small_small = CPLaddauxpoints(CPL_fl_lever_small_small,1);
+
+SG_fl_lever = SGofCPLz(CPL_fl_lever,5);
+SG_level_bottom_chamfer = SGof2CPLsz(CPL_fl_lever_small_small,CPL_fl_lever_small,2);
+
+SG_fl_lever = SGstack('z',SG_level_bottom_chamfer,SG_fl_lever);
+
+SG_fl_lever = SGcircularpattern(SG_fl_lever,gripper_number,(2*pi)/gripper_number);
+SG_fl_lever = SGtransrelSG(SG_fl_lever,SG_fl_mid,'aligntop');
+SG_fl_mid = SGcat(SG_fl_lever,SG_fl_mid);
+% SGplot(SG_fl_mid);
+% SGplot(SGtransrelSG(SG_mid_rotator,SG_fl_mid,'aligntop'));
+
 %% Connecting rod
 rod_length = max_grip_R-10-servo.connect_R-5.5;
-rod_R = 60;
+rod_R = 30;
 start_point = [sqrt(rod_R^2-(rod_length/2)^2) -rod_length/2];
 end_point = [sqrt(rod_R^2-(rod_length/2)^2) rod_length/2];
 
@@ -276,7 +334,7 @@ CPL_rod_connections_small = CPLatPL(PLcircle(axle_R-1.25),[start_point;end_point
 CPL_rod_connections_big = CPLatPL(PLcircle(axle_R+1.25),[start_point;end_point]);
 
 SG_bottom_chamfer = SGof2CPLsz(CPL_rod_connections_small,CPL_rod_connections,1);
-SG_connection_body = SGofCPLz(CPL_rod_connections,2);
+SG_connection_body = SGofCPLz(CPL_rod_connections,3);
 SG_top_chamfer = SGof2CPLsz(CPL_rod_connections,CPL_rod_connections_big,1);
 
 SG_rod_connections = SGstack('z',SG_bottom_chamfer,SG_connection_body,SG_top_chamfer,SG_rod_contour);
@@ -286,29 +344,32 @@ SG_rod_connections = SGTset(SG_rod_connections,'B',H_b);
 
 H_f = [rotz(90)*rotx(180) [end_point';-1]; 0 0 0 1];
 SG_rod_connections = SGTset(SG_rod_connections,'F',H_f);
-
 %% läufer in guide
+runner_length = 11;
+runner_width = 18;
 
 CPL_runner_vertical = [PLcircle(axle_R+2);NaN NaN;PLcircle(axle_R)];
-CPL_runner_ver2hor = CPLbool('-',PLtrans(PLsquare(axle_R+2,4.75),[(axle_R+2)/2 4.75/2-(axle_R+2)]),PLcircle(axle_R+2));
+CPL_runner_ver2hor = CPLbool('-',PLtrans(PLsquare(axle_R+2+4,4.75),[(axle_R+2+4)/2 4.75/2-(axle_R+2)]),PLcircle(axle_R+2));
 SG_runner_vertical = SGofCPLz(CPL_runner_vertical,7.5);
 SG_runner_ver2hor = SGofCPLz(CPL_runner_ver2hor,7.5);
 SG_runner_vertical = SGcat(SG_runner_vertical,SG_runner_ver2hor);
-CPL_runner_hor = [PLsquare(18,7.5);NaN NaN;PLcircle(axle_R)];
+
+CPL_runner_hor = [PLsquare(runner_width,runner_length);NaN NaN;PLcircle(axle_R)];
 SG_runner_hor = SGofCPLz(CPL_runner_hor,4.75);
 
 CPL_runner_cut = [0 0;0 4.75;4.75 0];
 CPL_runner_tri = [0 0;0 0.01;0.01 0];
 CPL_front_tri = [0 0;2 0;0 4.75];
+
 SG_runner_1 = SGof2CPLsz(CPL_runner_cut,CPL_runner_tri,2);
-SG_runner_2 = SGofCPLz(CPL_runner_cut,7.5/2);
+SG_runner_2 = SGofCPLz(CPL_runner_cut,runner_length/2);
 SG_runner_sides = SGstack('z',SG_runner_2,SG_runner_1);
 SG_runner_sides = SGcat(SG_runner_sides,SGmirror(SG_runner_sides,'xy'));
 SG_runner_sides = SGtransrelSG(SG_runner_sides,SG_runner_hor,'rotx',pi/2,'transx',7.5/2,'right');
 SG_runner_sides = SGcat(SG_runner_sides,SGmirror(SG_runner_sides,'yz'));
 SG_runner_hor = SGcat(SG_runner_sides,SG_runner_hor);
-SG_front_tri = SGofCPLz(CPL_front_tri,18);
-SG_back_tri = SGofCPLz(CPL_front_tri,9-3.75);
+SG_front_tri = SGofCPLz(CPL_front_tri,runner_width);
+SG_back_tri = SGofCPLz(CPL_front_tri,(runner_width/2)-3.75);
 
 SG_runner_hor = SGtransrelSG(SG_runner_hor,SG_runner_vertical,'rotx',-pi/2,'roty',-pi/2,'centerz','aligninfront','right',-2);
 SG_front_tri = SGtransrelSG(SG_front_tri,SG_runner_hor,'centerz','aligninfront','right',-2);
@@ -324,8 +385,16 @@ SG_runner = SGTset(SG_runner,'B',H_b);
 H_f = [rotz(180) [0;0;0]; 0 0 0 1];
 SG_runner = SGTset(SG_runner,'F',H_f);
 
+%% Length calculations
+bb_bottom_conn_point = 30;
+attachment_point = bb_bottom_conn_point+2;
+finger2hor_length = sqrt(bb_bottom_conn_point^2+15^2);
+finger2hor_length = 35;
+
+
+bb_bottom_length = 40;
+bb_top_length = 40;
 %% Finger lower part
-attachment_point = 27;
 
 CPL_lower_finger = CPLconvexhull([PLcircle(axle_hole_R+2);PLtrans(PLcircle(axle_hole_R+2),[0 finger_length_low])]);
 CPL_lower_finger = CPLbool('+',CPL_lower_finger,PLtrans(PLsquare(15+(axle_hole_R+2),2*(axle_hole_R+2)),[(axle_hole_R+2) finger_length_low]));
@@ -348,7 +417,7 @@ CPL_cover = PLroundcorners(CPL_cover,[1,4],[10 20]);
 CPL_cover_small = CPLbuffer(CPL_cover,-4);
 SG_cover = SGof2CPLsz(CPL_cover,CPL_cover_small,4);
 
-CPL_spring_attachment = PLtubbing(2,4,'',-pi/2,pi/2);
+CPL_spring_attachment = PLtubbing(1,3,'',-pi/2,pi/2);
 SG_spring_attachment = SGofCPLz(CPL_spring_attachment,5);
 SG_spring_attachment = SGtransrelSG(SG_spring_attachment,'','rotx',pi/2,'transx',axle_hole_R+2,'transy',attachment_point+axle_hole_R+2);
 
@@ -397,7 +466,6 @@ H_f = [rotz(0) [PL_attach_positons(2,:)';0]; 0 0 0 1];
 SG_finger_top = SGTset(SG_finger_top,'F',H_f);
 
 %%  Finger2horguide rod
-finger2hor_length = 35;
 
 CPL_finger2horguide = CPLconvexhull([PLtrans(PLcircle(axle_R+2),[0 finger2hor_length/2]);PLtrans(PLcircle(axle_R+2),[0 -finger2hor_length/2])]);
 CPL_finger2horguide = CPLbool('-',CPL_finger2horguide,PLtrans(PLcircle(axle_R),[0 finger2hor_length/2]));
@@ -419,8 +487,6 @@ SG_finger2horguide = SGTset(SG_finger2horguide,'B',H_b);
 H_f = [rotz(0) [0;finger2hor_length/2;0]; 0 0 0 1];
 SG_finger2horguide = SGTset(SG_finger2horguide,'F',H_f);
 %% Finger_back_bone_bottom
-bb_bottom_length = 40;
-bb_bottom_conn_point = 30;
 
 CPL_bb_bottom = CPLconvexhull([PLcircle(axle_R+2);PLtrans(PLcircle(axle_R+2),[0 bb_bottom_length])]);
 
@@ -430,7 +496,7 @@ CPL_bb_bottom = CPLbool('-',CPL_bb_bottom,PLtrans(PLcircle(axle_R),[0 bb_bottom_
 
 CPL_bb_bottom_mid = CPLbool('-',CPL_bb_bottom,PLtrans(PLcircle(axle_R+4),[0 bb_bottom_length]));
 
-SG_bb_bottom = SGofCPLz(CPL_bb_bottom,1.875);
+SG_bb_bottom = SGofCPLz(CPL_bb_bottom,1.675);
 SG_bb_bottom_mid = SGofCPLz(CPL_bb_bottom_mid,4.25);
 SG_bb_bottom = SGstack('z',SG_bb_bottom,SG_bb_bottom_mid,SG_bb_bottom);
 SG_bb_bottom = SGtransrelSG(SG_bb_bottom,'','centerz');
@@ -439,17 +505,17 @@ SG_bb_bottom = SGTset(SG_bb_bottom,'B',H_b);
 
 H_f = [rotz(0) [0;0;0]; 0 0 0 1];
 SG_bb_bottom = SGTset(SG_bb_bottom,'F',H_f);
+SGplot(SG_bb_bottom);
 %% Finger_back_bone_top
-bb_top_length = 40;
 
 CPL_bb_top = PLtrans(PLsquare(5,bb_top_length),[2.5 0]);
 CPL_bb_top = CPLbool('+',CPL_bb_top,PLtrans(PLcircle(axle_R+2),[0 bb_top_length/2]));
 CPL_bb_top = CPLbool('+',CPL_bb_top, PLtrans(PLcircle(axle_R+2),[0 -bb_top_length/2]));
-CPL_bb_top = CPLbool('+',CPL_bb_top, PLtrans(PLcircle(3),[0 bb_top_length/2-20]));
+CPL_bb_top = CPLbool('+',CPL_bb_top, PLtrans(PLcircle(3),[0 bb_top_length/2-10]));
 
 CPL_bb_top = CPLbool('-',CPL_bb_top,PLtrans(PLcircle(axle_R),[0 bb_top_length/2]));
 CPL_bb_top = CPLbool('-',CPL_bb_top, PLtrans(PLcircle(axle_R),[0 -bb_top_length/2]));
-CPL_bb_top = CPLbool('-',CPL_bb_top, PLtrans(PLcircle(1.5),[0 bb_top_length/2-20]));
+CPL_bb_top = CPLbool('-',CPL_bb_top, PLtrans(PLcircle(1.5),[0 bb_top_length/2-10]));
 SG_bb_top = SGofCPLz(CPL_bb_top,4);
 
 H_b = [rotz(-30) [0;bb_top_length/2;2]; 0 0 0 1];
@@ -458,7 +524,18 @@ SG_bb_top = SGTset(SG_bb_top,'B',H_b);
 H_f = [rotz(0) [0;-bb_top_length/2;2]; 0 0 0 1];
 SG_bb_top = SGTset(SG_bb_top,'F',H_f);
 %% STLWRITE
-SGwriteSTL(SG);
+SGwriteSTL(SG_lid);
+
+SGwriteSTL(SG_lower_finger);
+SGwriteSTL(SG_finger_top);
+SGwriteSTL(SG_bb_top);
+SGwriteSTL(SG_bb_bottom);
+SGwriteSTL(SG_runner);
+SGwriteSTL(SG_rod_connections);
+SGwriteSTL(SG_finger2horguide);
+SGwriteSTL(SG_mid_rotator);
+SGwriteSTL(SG_fl_mid);
+
 
 %% Plots
 fc2 = {};
@@ -516,6 +593,8 @@ SGc = SGTchain(SG_eles,[0],'',fc);
 SGplot(SGc);
 
 SG_mid_rotator = SGtransrelSG(SG_mid_rotator,SG_lid,'ontop',-4);
+SGplot(SGtransrelSG(SG_fl_mid,SG_mid_rotator,'aligntop'));
+
 SGplot(SG_mid_rotator);
 end
 
