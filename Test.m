@@ -1,0 +1,1 @@
+LCLrobot('arm_length',85,'driven_gripper');

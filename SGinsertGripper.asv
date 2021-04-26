@@ -1,0 +1,25 @@
+function [SG] = SGinsertGripper()
+clf;
+tool_R = 15;
+tool_angle = 45;
+handle_length = 50;
+
+height = sind(tool_angle)*handle_length;
+tool_offset_top = cosd(tool_angle)*handle_length;
+length = tool_offset_top+4*tool_R;
+
+PL_bottom = PLtrans(PLsquare(4*tool_R,length),[0 -length/2+2*tool_R]);
+PL_bottom = PLroundcorners(PL_bottom,[3,4],2*tool_R);
+PL_top = PL_bottom;
+PL_bottom = [PL_bottom;NaN NaN;PLcircle(tool_R)];
+
+PL_top = [PL_top;NaN NaN;PLtrans(PLcircle(tool_R),[0 -tool_offset_top])];
+
+SG = SGof2CPLsz(PL_bottom,PL_top,height);
+SGtransrelSG(SG,'','roty')
+SGplot(SG);
+
+
+
+
+end

@@ -1,8 +1,8 @@
 function [SG] = SGLCLtoolholder()
 clf;
-tool_R = 15;
-tool_angle = 45;
-handle_length = 50;
+tool_R =  10;
+tool_angle = 0;
+handle_length = 40;
 
 
 CPL_main_body = PLsquare(handle_length);
@@ -28,7 +28,7 @@ CPL_stop = PLroundcorners(PLsquare(handle_length),[1,2,3,4],5);
 SG_stop = SGofCPLz(CPL_stop,4);
 
 insert_length = handle_length/sin(tool_angle);
-insert_length = min(insert_length,handle_length)-10;
+insert_length = min(insert_length,handle_length)-4;
 CPL_insert = CPLbool('-',PLsquare(2*tool_R),PLcircle(tool_R));
 CPL_insert_holder = CPLbool('x',PLcircle(tool_R),CPLcopyradial(PLcircle(1),tool_R,10));
 CPL_insert = CPLbool('+',CPL_insert,CPL_insert_holder);
@@ -44,6 +44,7 @@ SG_connection = SGof2CPLsz(CPL_connector,CPLaddauxpoints(CPL_stop,1),10);
 SG = SGstack('z',SG_connector,SG_connection,SG_main_body);
 
 SGplot(SG);
+SGwriteSTL(SG);
 
 
 end

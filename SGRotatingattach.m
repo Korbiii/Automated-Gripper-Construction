@@ -1,4 +1,4 @@
-function [SG, SG_lid, CPL] = SGRotatingattach(servo_name)
+function [SG, SG_lid, CPL] = SGRotatingattach(servo_name,varargin)
 clf;
 servo_name = lower(servo_name);
 load Servos;
@@ -12,6 +12,9 @@ switch servo_name
 end
 tol = 0.5;
 screw_length = 14-3;
+
+attach_dof = 0; if nargin>=2 && ~isempty(varargin{1}); attach_dof=varargin{1}; end
+attach_servo = 0; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
 
 servo.width = servo.width+tol;
 servo.length = servo.length+tol;
@@ -110,6 +113,16 @@ SG_lid = SGTset(SG_lid,'B',H_b_lid);
 H_f_lid = [rotx(0) [0;0;3]; 0 0 0 1];
 SG_lid = SGTset(SG_lid,'F',H_f_lid);
 
-H_f = [roty(-90) [0;0;max(SG.VL(:,3))]; 0 0 0 1];
+if attach_dof ~= 0
+    if attach_dof == 'z'
+        [SG_connector,CPL_coonector] = SGrotationdisk(attach_servo);
+    elseif attach_dof == 'x'
+        [SG_connector,CPL_coonector] = SGbracket(attach_servo);
+    end
+    SG_connection = SGof2CPLsz(CPL_coonector,CPL,10);
+    SG = SGstack2('z',SG_connector,SG_connection,SG);
+end
+
+H_f = [roty(180) [0;0;max(SG.VL(:,3))]; 0 0 0 1];
 SG = SGTset(SG,'F',H_f);
 end

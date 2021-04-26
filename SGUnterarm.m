@@ -1,11 +1,8 @@
-function [SGs] = SGUnterarm()
+function [SG] = SGUnterarm(arm_length,dof,servo_name)
 
 
-arm_length = 85;
 arm_height_increase = 20;
-servo_name = 'sm40bl';
-angle = pi/2;
-conn_type = 'x';
+angle = 0;
 
 
 
@@ -100,11 +97,11 @@ for i=1:size(SG_conn_arm_bottom.VL,1)
 end
 
 %% Top Servo mount
-if (conn_type == 'z' )
+if (dof == 'z' )
 	[SG_bottom,SG_lid,CPL] = SGRotatingattach(servo_name);
 	SG_bottom = SGtrans(SG_bottom,rot(angle));
 	CPL = PLtransR(CPL,rot(angle));	
-elseif(conn_type == 'x')
+elseif(dof == 'x')
 	[SG_bottom,CPL] = SGLCLzdof(servo_name);
 	SG_bottom = SGtrans(SG_bottom,rot(angle));
 	CPL = PLtransR(CPL,rot(angle));	
@@ -128,7 +125,9 @@ H_b = [rotx(0) [0;0;min_z_bott_con]; 0 0 0 1];
 SG = SGTset(SG,'B',H_b);
 
 % SGs = {SG,SG_lid};
-SGTplot(SG);
+if nargout== 0
+    SGplot(SG);
+end
 
 
 

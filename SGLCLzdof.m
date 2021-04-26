@@ -1,4 +1,4 @@
-function [SG,CPL] = SGLCLzdof(servo_name)
+function [SG,CPL] = SGLCLzdof(servo_name,varargin)
 clf;
 servo_name = lower(servo_name);
 load Servos;
@@ -10,6 +10,9 @@ switch servo_name
 	otherwise
 		error('Only SM40BL and SM85BL implemented');
 end
+
+attach_dof = 0; if nargin>=2 && ~isempty(varargin{1}); attach_dof=varargin{1}; end
+attach_servo = 0; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
 tol = 0.5;
 screw_length = 14-3;
 
@@ -20,7 +23,6 @@ servo.length = servo.length+tol;
 servo.height = servo.height+tol;
 outer_radius = servo.width/2+Servos.cable_gap+3;
 start_cable_gap = servo.height/2+min(servo.PL_cable_gap_ver(:,2));
-
 
 CPL_outside = CPLconvexhull([PLcircle(outer_radius);[-outer_radius,-distance_axis-2;outer_radius,-distance_axis-2]]);
 CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(servo.connect_R);[-servo.connect_R,30;servo.connect_R,30]]));
@@ -36,12 +38,9 @@ if(~isnan(servo.screw_mount_x))
 	top = max(servo.screw_mount_x(:,2))+servo.screw_R;
 	CPL_outside_w_screw_slots = CPLbool('-',CPL_outside_w_screw_slots,PLtrans(PLsquare(outer_radius*2,top-bot),[0 -shaft_mid_Dis-top/2]));
 	
-	x=2;
 elseif(~isnan(servo.screw_mount_z))
 	%%TODO
 end
-
-
 
 SG_front = SGof2CPLsz(CPL_outside,CPL_outside,3);
 SG_1 = SGofCPLz(CPL_outside_w_servo_slot,start_cable_gap);
@@ -54,16 +53,31 @@ if(~isnan(servo.screw_mount_x))
 % 	screw_hols = PLtrans(CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_x),[0 0])
 	SG_screws_small = SGofCPLz(CPL_screws_small,screw_length);
 	SG_screws_small = SGtransrelSG(SG_screws_small,SG_3,'roty',pi/2,'transy',-shaft_mid_Dis-top/2,'transx',servo.width/2,'aligntop');
-	SG_3 = SGcat(SG_3,SG_screws_small);
+	SG_screws_small = SGcat(SG_screws_small,SGmirror(SG_screws_small,'yz'));
+    SG_3 = SGcat(SG_3,SG_screws_small);
 elseif(~isnan(servo.screw_mount_z))
 	%%TODO
 end
+
 
 SG = SGstack('z',SG_front,SG_1,SG_2,SG_3,SG_back);
 SG = SGtransrelSG(SG,'','rotx',pi/2,'centery');
 
 CPL = CPLconvexhull(CPLofSGslice(SG,min(SG.VL(:,2))));
 CPL = [CPL;NaN NaN;CPLgrow(CPL,4)];
+
+if attach_dof ~= 0
+    if attach_dof == 'z'
+        [SG_connector,CPL_coonector] = SGrotationdisk(attach_servo);
+    elseif attach_dof == 'x'
+        [SG_connector,CPL_coonector] = SGbracket(attach_servo);
+    end
+end
+SG_connection = SGof2CPLsz(CPL_coonector,CPL,10);
+H_f = [rotx(90) [0;0;0]; 0 0 0 1];
+SG = SGTset(SG,'F',H_f);
+
+SG = SGstack2('z',SG_connector,SG_connection,SG);
 
 %% Screw Holes
 % screw_rad = 1.5;
@@ -77,8 +91,7 @@ CPL = [CPL;NaN NaN;CPLgrow(CPL,4)];
 % SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_2);
 % 
 
-H_f = [rotx(90) [0;0;0]; 0 0 0 1];
-SG = SGTset(SG,'F',H_f);
+
 
 SG = SGtransrelSG(SG,'','alignbottom');
 

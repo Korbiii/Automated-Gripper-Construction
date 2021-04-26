@@ -12,8 +12,8 @@ screw_length = 14-3;
 
 CPL_screw_holes = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);
 cable_gap_R = sqrt(servo.shaft_offs^2+(servo.width/2)^2);
-CPL_bracket = CPLconvexhull([PLcircle(servo.width/2+5);-(servo.width/2+5) cable_gap_R+5;(servo.width/2+5) cable_gap_R+5]);
-CPL_bracket_small = CPLconvexhull([PLcircle(servo.width/2+3);-(servo.width/2+3) cable_gap_R+5;(servo.width/2+3) cable_gap_R+5]);
+CPL_bracket = CPLconvexhull([PLcircle(servo.width/2+5);-(servo.width/2+5) cable_gap_R+12;(servo.width/2+5) cable_gap_R+12]);
+CPL_bracket_small = CPLconvexhull([PLcircle(servo.width/2+3);-(servo.width/2+3) cable_gap_R+12;(servo.width/2+3) cable_gap_R+12]);
 CPL_bracket = CPLbool('-',CPL_bracket,CPL_screw_holes);
 CPL_bracket_small = CPLbool('-',CPL_bracket_small,CPL_screw_holes);
 
@@ -41,6 +41,5 @@ SG = SGTset(SG,'B',H_b);
 CPL = CPLconvexhull(CPLofSGslice(SG,max(SG.VL(:,3))-0.1));
 gap_bracket = screw_length-missing_screw_length;
 CPL = [CPL;NaN NaN;PLsquare(2*max(CPL(:,1)-5),2*max(CPL(:,2)-gap_bracket-5))];
-
 
 end
