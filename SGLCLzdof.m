@@ -1,18 +1,11 @@
 function [SG,CPL] = SGLCLzdof(servo_name,varargin)
 clf;
 servo_name = lower(servo_name);
-load Servos;
-switch servo_name
-	case 'sm40bl'
-		servo = Servos.sm40;
-	case 'sm85bl'
-		servo = Servos.sm85;
-	otherwise
-		error('Only SM40BL and SM85BL implemented');
-end
+servo = readServoFromTable(servo_name);
 
 attach_dof = 0; if nargin>=2 && ~isempty(varargin{1}); attach_dof=varargin{1}; end
-attach_servo = 0; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
+attach_servo = 'sm40bl'; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
+
 tol = 0.5;
 screw_length = 14-3;
 
@@ -21,13 +14,13 @@ distance_axis = servo.length-servo.shaft_offs;
 servo.width = servo.width+tol;
 servo.length = servo.length+tol;
 servo.height = servo.height+tol;
-outer_radius = servo.width/2+Servos.cable_gap+3;
+outer_radius = servo.width/2+servo.cable_gap+3;
 start_cable_gap = servo.height/2+min(servo.PL_cable_gap_ver(:,2));
 
 CPL_outside = CPLconvexhull([PLcircle(outer_radius);[-outer_radius,-distance_axis-2;outer_radius,-distance_axis-2]]);
 CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(servo.connect_R);[-servo.connect_R,30;servo.connect_R,30]]));
 
-CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo.width+2*Servos.cable_gap,servo.length*2));
+CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo.width+2*servo.cable_gap,servo.length*2));
 CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo.width,servo.length*2));
 CPL_outside_w_screw_slots = CPL_outside_w_servo_slot;
 
@@ -44,12 +37,12 @@ end
 
 SG_front = SGof2CPLsz(CPL_outside,CPL_outside,3);
 SG_1 = SGofCPLz(CPL_outside_w_servo_slot,start_cable_gap);
-SG_2 = SGofCPLz(CPL_outside_w_cable_slots,Servos.cable_gap_width);
-SG_3 = SGofCPLz(CPL_outside_w_screw_slots,servo.height-Servos.cable_gap_width-start_cable_gap);
+SG_2 = SGofCPLz(CPL_outside_w_cable_slots,servo.cable_gap_width);
+SG_3 = SGofCPLz(CPL_outside_w_screw_slots,servo.height-servo.cable_gap_width-start_cable_gap);
 SG_back = SGof2CPLsz(CPL_outside,CPL_outside,3);
 
 if(~isnan(servo.screw_mount_x))
-	CPL_screws_small = PLsquare(servo.height-Servos.cable_gap_width-start_cable_gap,top-bot);
+	CPL_screws_small = PLsquare(servo.height-servo.cable_gap_width-start_cable_gap,top-bot);
 % 	screw_hols = PLtrans(CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_x),[0 0])
 	SG_screws_small = SGofCPLz(CPL_screws_small,screw_length);
 	SG_screws_small = SGtransrelSG(SG_screws_small,SG_3,'roty',pi/2,'transy',-shaft_mid_Dis-top/2,'transx',servo.width/2,'aligntop');

@@ -33,7 +33,7 @@ end
 
 if gripper_type ~= 0
     if gripper_type == 1
-        SG_gripper = SGgripper(dof_array(end));
+        SG_gripper = SGgripper('conn_type',dof_array(end));
     elseif gripper_type == 2
         % TODO
     end

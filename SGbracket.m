@@ -1,13 +1,5 @@
 function [SG, CPL] = SGbracket(servo_name)
-load Servos;
-switch servo_name
-	case 'sm40bl'
-		servo = Servos.sm40;
-	case 'sm85bl'
-		servo = Servos.sm85;
-	case 'sm120bl'
-		servo = Servos.sm120;
-end
+servo = readServoFromTable(servo_name);
 screw_length = 14-3;
 
 CPL_screw_holes = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);

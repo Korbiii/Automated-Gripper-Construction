@@ -1,20 +1,13 @@
 function [SG, SG_lid, CPL] = SGRotatingattach(servo_name,varargin)
 clf;
 servo_name = lower(servo_name);
-load Servos;
-switch servo_name
-	case 'sm40bl'
-		servo = Servos.sm40;
-	case 'sm85bl'
-		servo = Servos.sm85;
-	otherwise
-		error('Only SM40BL and SM85BL implemented');
-end
+servo = readServoFromTable(servo_name);
+
 tol = 0.5;
 screw_length = 14-3;
 
 attach_dof = 0; if nargin>=2 && ~isempty(varargin{1}); attach_dof=varargin{1}; end
-attach_servo = 0; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
+attach_servo = 'sm40bl'; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
 
 servo.width = servo.width+tol;
 servo.length = servo.length+tol;
@@ -22,22 +15,19 @@ servo.height = servo.height+tol;
 
 outer_radius_ser = max(sqrt(servo.shaft_offs^2+(servo.width/2)^2)+3,max(servo.PL_cable_gap_hor(:,1))+3);
 
-CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLgrow(PLroundcorners(servo.PL_cable_gap_hor,[1,2,3,4],Servos.cable_gap/4),1.5);PLtrans([-servo.width/2-5 0;servo.width/2+5 0],[0 -servo.length+servo.shaft_offs-screw_length+2])]);
+%% Main Body
+CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLgrow(PLroundcorners(servo.PL_cable_gap_hor,[1,2,3,4],servo.cable_gap/4),1.5);PLtrans([-servo.width/2-5 0;servo.width/2+5 0],[0 -servo.length+servo.shaft_offs-screw_length+2])]);
 idx = find(CPL_out(:,2) == min(CPL_out(:,2)));
 CPL_out = PLroundcorners(CPL_out,idx',3);
 CPL_in = PLtrans(PLsquare(servo.width,servo.length),[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
 CPL_in = CPLbool('+',CPL_in,servo.PL_cable_gap_hor);
-CPL_in = PLroundcorners(CPL_in,[2,3,4,9,10,11],Servos.cable_gap/4);
+CPL_in = PLroundcorners(CPL_in,[2,3,4,9,10,11],servo.cable_gap/4);
 CPL_in = CPLbool('+',CPL_in,PLtrans(PLsquare(servo.width-4,servo.length+8),[0 -(((servo.length+8)/2)-servo.shaft_offs)+0.5*tol+4]));
 
-CPL_in_ledge = PLtrans(PLsquare(servo.width,servo.length-4),[0 -(((servo.length-4)/2)-servo.shaft_offs)]);
+CPL_in_ledge = PLtrans(PLsquare(servo.width-8,servo.length-8),[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
 CPL_in_ledge = CPLbool('+',CPL_in_ledge,servo.PL_cable_gap_hor);
 
-CPL_addon = PLcircseg (outer_radius_ser,'',0,pi);
-CPL_addon = CPLbool('-',CPL_addon,PLroundcorners(servo.PL_cable_gap_hor,[1,2,3,4],Servos.cable_gap/4));
-
-CPL_in_ledge = PLroundcorners(CPL_in_ledge,[2,3,4,9,10,11],Servos.cable_gap/4);
-CPL_in_ledge = CPLbool('-',CPL_in_ledge,CPL_addon);
+CPL_in_ledge = PLroundcorners(CPL_in_ledge,[2,3,4,5,8,9,10,11],servo.cable_gap/4);
 CPL_in_ledge = CPLbool('+',CPL_in_ledge,PLcircle(servo.attach_top_R));
 CPL_in_ledge_wo_screws = CPL_in_ledge;
 
@@ -66,7 +56,9 @@ if(~isnan(servo.screw_mount_y))
 	SG_screw_inserts_2 = SGfittoOutsideCPL(SG_screw_inserts_2,CPL_out,'y+');
 	SG_bottom  = SGcat(SG_screw_inserts_1,SG_screw_inserts_2,SG_bottom);
 elseif(~isnan(servo.screw_mount_z))
-	CPL_screw_holes = CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z);
+	CPL_screw_holes = CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z);	
+	CPL_screw_holes_addons = CPLatPL(PLcircle(servo.screw_R+2),servo.screw_mount_z);
+	CPL_in_ledge = CPLbool('-',CPL_in_ledge,PLtrans(CPL_screw_holes_addons,[0 -servo.shaft_offs]));
 	CPL_in_ledge = CPLbool('+',CPL_in_ledge,PLtrans(CPL_screw_holes,[0 -servo.shaft_offs]));
 	SG_bottom = SGofCPLz(CPL_bottom,servo.height);	
 end
@@ -77,7 +69,10 @@ CPL_out_conn = CPLbool('-',CPL_out,PLcircseg(outer_radius_ser+1,'',0,pi));
 CPL = CPLconvexhull([CPLgrow(CPL_in_ledge_wo_screws,-2);CPL_out_conn]);
 CPL = [CPL;NaN NaN;CPL_in_ledge_wo_screws];
 
-%%Lid
+CPL = CPLconvexhull([PLcircle(outer_radius_ser);CPLbuffer(PLroundcorners(servo.PL_cable_gap_hor,[1,2,3,4],servo.cable_gap/4),2)]);
+CPL_in_ledge_wo_screws = CPLbool('x',CPL_in_ledge_wo_screws,CPLbuffer(CPL,-2));
+CPL = [CPL;NaN NaN;CPL_in_ledge_wo_screws];
+%% Lid
  CPL_lid_outline = CPL_out;
 CPL_lid_top = [CPL_lid_outline;NaN NaN;PLcircle(outer_radius_ser-3)];
 CPL_lid_top_chamfer = [PLgrow(CPL_lid_outline,1);NaN NaN;PLcircle(outer_radius_ser-3)];
