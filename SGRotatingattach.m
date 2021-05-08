@@ -125,4 +125,7 @@ end
 
 H_f = [roty(180) [0;0;max(SG.VL(:,3))]; 0 0 0 1];
 SG = SGTset(SG,'F',H_f);
+clf;
+SGplot(SG);
+SGplot(SGtransrelSG(SG_lid,SG,'aligntop',10));
 end

@@ -8,52 +8,74 @@
 %    conn_servo_name :
 %    === OUTPUT RESULTS ======
 %    SGs :
-function [SG] = SGgripper(conn_type)
+function [SG] = SGgripper(varargin)
+clf;
+%%Default configuration
+
+servo_name = 'sm40bl';
+
+gripper_number = 2;
+max_grip_R = 47;
+attach_width = 20;
+finger_length_low = 65;
+finger_tip_length = 45;
+gripper_angles = [0,180];
+
+conn_servo_name = "sm40bl";
+conn_type  = 'x';
+
+
+%% Default variables
+output = 0;
 
 %%Inputs
-output = 1;
-
-attach_width = 20;
-max_grip_R =50;
-
-gripper_number = 3;
-ang = 360/gripper_number;
-gripper_angles =[];
-for i = 0 : gripper_number-1
-    gripper_angles = [gripper_angles ang*i];
-    
+i_idx = 1;
+while i_idx<=size(varargin,2)
+	if ~ischar(varargin{i_idx})
+		i_idx = i_idx+1; 
+		continue; 
+	end
+	switch varargin{i_idx}
+		case 'gripper_numbers'
+			if(varargin{i_idx+1}>0)
+				gripper_number = varargin{i_idx+1};
+			else
+				error("At least one gripper is needed");
+			end
+			gripper_angles = [];
+			for i = 0 : gripper_number-1
+				gripper_angles = [gripper_angles (360/gripper_number)*i];				
+			end
+		case 'gripper_angles'
+			gripper_angles = varargin{i_idx+1};
+		case 'servo'
+			servo_name = varargin{i_idx+1};
+			i_idx = i_idx+1;	
+		case 'conn_servo'
+			conn_servo_name = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'conn_type'
+			conn_type = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'Radius'
+			max_grip_R = varargin{i_idx+1};
+		case 'finger_length_low'
+			finger_length_low = varargin{i_idx+1};
+		case 'finger_tip_length'
+			finger_tip_length = varargin{i_idx+1};
+		case 'attach_width'
+			attach_width = varargin{i_idx+1};
+		case 'outputSTL'
+			output = 1;
+		otherwise
+			error(varargin{i_idx} + " isn't a valid flag!");
+	end
+	i_idx = i_idx+1;
 end
 
+finger_tip_length = min(finger_tip_length,max_grip_R);
 
-% 
-% gripper_number = 3;
-% 
-% max_grip_R =55;
-% gripper_angles = [160,200,0];
-% % 
-gripper_number = 3;
-max_grip_R =55;
-gripper_angles = [0,130,230,300];
-
-
-% conn_type  = 'xy';
-conn_servo_name = "sm40bl";
-finger_length_low = 65;
-
-finger_tip_length = 45;
-
-clf;
-% servo_name = lower(servo_name);
-servo_name = "sm40bl";
-load Servos;
-switch servo_name
-	case 'sm40bl'
-		servo = Servos.sm40;
-	case 'sm85bl'
-		servo = Servos.sm85;
-	otherwise
-		error('Only SM40BL and SM85BL implemented');
-end
+servo = readServoFromTable(servo_name);
 tol = 0.5;
 screw_length = 14-3;
 axle_R = 3;
@@ -63,7 +85,6 @@ axle_R = 3;
 outer_radius = 26.5;
 distance_axis = servo.length-servo.shaft_offs;
 top_height = (axle_R*2+4)+10;
-cable_clearance_start = 10;
 
 if conn_type == 'x'
 	[SG_connector,CPL_connector] = SGbracket(conn_servo_name);
@@ -73,7 +94,7 @@ end
 
 
 %% Servocage
-CPL_servo_outer = PLtrans(PLsquare(servo.width+2*Servos.cable_gap,servo.length+2*(screw_length)),[0,-(servo.length-distance_axis)]);
+CPL_servo_outer = PLtrans(PLsquare(servo.width+2*servo.cable_gap,servo.length+2*(screw_length)),[0,-(servo.length-distance_axis)]);
 CPL_grip_attach = [-(attach_width+5)/2 -max_grip_R;(attach_width+5)/2 -max_grip_R;(attach_width+5)/2 0;-(attach_width+5)/2 0];
 CPL_grip_attach_test = [-(attach_width+5)/2 -max_grip_R;(attach_width+5)/2 -max_grip_R];
 CPL_grip_attach_test = CPLaddauxpoints(CPL_grip_attach_test,0.5);
@@ -326,7 +347,7 @@ SG_fl_mid = SGcat(SG_fl_lever,SG_fl_mid);
 SGplot(SG_fl_mid);
 %% Connecting rod
 rod_length = max_grip_R-10-servo.connect_R-5.5;
-rod_R = 30;
+rod_R = rod_length/2;
 start_point = [sqrt(rod_R^2-(rod_length/2)^2) -rod_length/2];
 end_point = [sqrt(rod_R^2-(rod_length/2)^2) rod_length/2];
 

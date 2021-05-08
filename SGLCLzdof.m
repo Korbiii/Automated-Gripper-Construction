@@ -65,19 +65,19 @@ SG = SGtransrelSG(SG,'','rotx',pi/2,'centery');
 
 CPL = CPLconvexhull(CPLofSGslice(SG,min(SG.VL(:,2))));
 CPL = [CPL;NaN NaN;CPLgrow(CPL,4)];
-
+H_f = [rotx(90) [0;0;0]; 0 0 0 1];
+SG = SGTset(SG,'F',H_f);
 if attach_dof ~= 0
     if attach_dof == 'z'
         [SG_connector,CPL_coonector] = SGrotationdisk(attach_servo);
     elseif attach_dof == 'x'
         [SG_connector,CPL_coonector] = SGbracket(attach_servo);
-    end
+	end
+	SG_connection = SGof2CPLsz(CPL_coonector,CPL,10);	
+	SG = SGstack2('z',SG_connector,SG_connection,SG);
 end
-SG_connection = SGof2CPLsz(CPL_coonector,CPL,10);
-H_f = [rotx(90) [0;0;0]; 0 0 0 1];
-SG = SGTset(SG,'F',H_f);
 
-SG = SGstack2('z',SG_connector,SG_connection,SG);
+
 
 %% Screw Holes
 % screw_rad = 1.5;

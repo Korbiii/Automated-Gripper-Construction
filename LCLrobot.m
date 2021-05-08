@@ -1,8 +1,8 @@
 function [SG] = LCLrobot(varargin)
 
-arm_length = 85;
-dof_array = ['z','x','z'];
-servo_array = {'sm40bl','sm40bl','sm40bl','sm40bl'};
+arm_length = 150;
+dof_array = ['z','x'];
+servo_array = {'sm40bl','sm40bl','sm40bl'};
 gripper_type = 1;
 gripper_servo = 'sm40bl';
 
