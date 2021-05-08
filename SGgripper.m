@@ -21,7 +21,7 @@ finger_length_low = 65;
 finger_tip_length = 45;
 gripper_angles = [0,180];
 
-conn_servo_name = "sm40bl";
+conn_servo_name = 'sm40bl';
 conn_type  = 'x';
 
 

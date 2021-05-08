@@ -1,3 +1,4 @@
+
 function [SG] = LCLrobot(varargin)
 
 arm_length = 150;
