@@ -15,19 +15,24 @@ servo.height = servo.height+tol;
 
 outer_radius_ser = max(sqrt(servo.shaft_offs^2+(servo.width/2)^2)+3,max(servo.PL_cable_gap_hor(:,1))+3);
 
+
+
 %% Main Body
-CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLgrow(PLroundcorners(servo.PL_cable_gap_hor,[1,2,3,4],servo.cable_gap/4),1.5);PLtrans([-servo.width/2-5 0;servo.width/2+5 0],[0 -servo.length+servo.shaft_offs-screw_length+2])]);
+CPL_cable_gap = PLtrans(servo.PL_cable_gap_hor,[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
+CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLgrow(PLroundcorners(CPL_cable_gap,[1,2,3,4],servo.cable_gap/4),1.5);PLtrans([-servo.width/2-5 0;servo.width/2+5 0],[0 -servo.length+servo.shaft_offs-screw_length+2])]);
 idx = find(CPL_out(:,2) == min(CPL_out(:,2)));
 CPL_out = PLroundcorners(CPL_out,idx',3);
 CPL_in = PLtrans(PLsquare(servo.width,servo.length),[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
-CPL_in = CPLbool('+',CPL_in,servo.PL_cable_gap_hor);
+CPL_in = CPLbool('+',CPL_in,PLtrans(servo.PL_cable_gap_hor,[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]));
 CPL_in = PLroundcorners(CPL_in,[2,3,4,9,10,11],servo.cable_gap/4);
 CPL_in = CPLbool('+',CPL_in,PLtrans(PLsquare(servo.width-4,servo.length+8),[0 -(((servo.length+8)/2)-servo.shaft_offs)+0.5*tol+4]));
 
 CPL_in_ledge = PLtrans(PLsquare(servo.width-8,servo.length-8),[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
-CPL_in_ledge = CPLbool('+',CPL_in_ledge,servo.PL_cable_gap_hor);
+min_cable_gap = min(CPL_cable_gap(2,:));
+CPL_in_ledge = CPLbool('+',CPL_in_ledge,CPL_cable_gap);
+CPL_in_ledge = CPLbool('-',CPL_in_ledge,[-5000 min_cable_gap;5000 min_cable_gap;5000 -5000;-5000 -5000]);
 
-CPL_in_ledge = PLroundcorners(CPL_in_ledge,[2,3,4,5,8,9,10,11],servo.cable_gap/4);
+CPL_in_ledge = PLroundcorners(CPL_in_ledge,[1,2,3,6,7,8],servo.cable_gap/4);
 CPL_in_ledge = CPLbool('+',CPL_in_ledge,PLcircle(servo.attach_top_R));
 CPL_in_ledge_wo_screws = CPL_in_ledge;
 
@@ -69,8 +74,9 @@ CPL_out_conn = CPLbool('-',CPL_out,PLcircseg(outer_radius_ser+1,'',0,pi));
 CPL = CPLconvexhull([CPLgrow(CPL_in_ledge_wo_screws,-2);CPL_out_conn]);
 CPL = [CPL;NaN NaN;CPL_in_ledge_wo_screws];
 
-CPL = CPLconvexhull([PLcircle(outer_radius_ser);CPLbuffer(PLroundcorners(servo.PL_cable_gap_hor,[1,2,3,4],servo.cable_gap/4),2)]);
-CPL_in_ledge_wo_screws = CPLbool('x',CPL_in_ledge_wo_screws,CPLbuffer(CPL,-2));
+% CPL = CPLconvexhull([PLcircle(outer_radius_ser);CPLbuffer(PLroundcorners(CPL_cable_gap,[1,2,3,4],servo.cable_gap/4),2)]);
+CPL = CPLconvexhull([PLcircle(outer_radius_ser);CPLbuffer(CPL_in_ledge_wo_screws,2)]);
+% CPL_in_ledge_wo_screws = CPLbool('x',CPL_in_ledge_wo_screws,CPLbuffer(CPL,-2));
 CPL = [CPL;NaN NaN;CPL_in_ledge_wo_screws];
 %% Lid
  CPL_lid_outline = CPL_out;
