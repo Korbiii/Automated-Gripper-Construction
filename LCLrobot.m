@@ -1,4 +1,10 @@
-
+%%   SG = LCLRobot(input1,)
+%    === INPUT PARAMETERS ===
+%    input1 : 
+%
+%    === OUTPUT RESULTS ======
+%    SG : 
+%
 function [SG] = LCLrobot(varargin)
 
 arm_length = 150;

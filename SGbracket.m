@@ -1,6 +1,6 @@
 function [SG, CPL] = SGbracket(servo_name)
 servo = readServoFromTable(servo_name);
-screw_length = 14-3;
+screw_length = 12-3;
 
 CPL_screw_holes = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);
 cable_gap_R = sqrt(servo.shaft_offs^2+(servo.width/2)^2);
