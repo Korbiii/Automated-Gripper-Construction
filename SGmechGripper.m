@@ -12,6 +12,7 @@ spring_R = 2.5;
 plunger_guide_W = 5;
 spring_length = 30;
 axle_R = 3;
+axle_oR = axle_R+3;
 gripper_attach_R = main_R+20;
 gripper_attach_H = (main_H+7) + 20;
 
@@ -89,7 +90,7 @@ SG_main_body = SGcat(SG_main_body,SG_spring_internal_guides);
 SG_main_body = SGstack('z',SG_connector,SG_2main_connection,SG_main_body,SG_top_main_body);
 
 
-CPL_gripper_attach_arms = CPLconvexhull([PLtrans(PLcircle(axle_R+2),[gripper_attach_R gripper_attach_H]);x (main_H+7);x 0]);
+CPL_gripper_attach_arms = CPLconvexhull([PLtrans(PLcircle(axle_oR),[gripper_attach_R gripper_attach_H]);x (main_H+7);x 0]);
 CPL_gripper_attach_arms = CPLbool('-',CPL_gripper_attach_arms,PLtrans(PLcircle(axle_R),[gripper_attach_R gripper_attach_H]));
  
 SG_gripper_attach_arm = SGofCPLz(CPL_gripper_attach_arms,5);
@@ -98,6 +99,17 @@ SG_gripper_attach_arm = SGcat(SG_gripper_attach_arm,SGmirror(SG_gripper_attach_a
 SG_gripper_attach_arm = SGcat(SG_gripper_attach_arm,SGmirror(SG_gripper_attach_arm,'yz'));
 
 SG_main_body = SGcat(SG_main_body,SG_gripper_attach_arm);
+
+H_b = [rotz(180) [0;0;0]; 0 0 0 1];
+SG_main_body = SGTset(SG_main_body,'B',H_b);
+
+[~,~,mZ] = sizeVL(SG_main_body.VL);
+
+H_f = [rotx(90)*rotz(-40) [gripper_attach_R;0;mZ-axle_oR]; 0 0 0 1];
+SG_main_body = SGTset(SG_main_body,'F1',H_f);
+
+H_f = [rotx(90)*rotz(40)*roty(180) [-gripper_attach_R;0;mZ-axle_oR]; 0 0 0 1];
+SG_main_body = SGTset(SG_main_body,'F2',H_f);
 
 %% PLUNGER
 CPL_plunger_guide_male = CPLbuffer(CPL_plunger_guide,-0.5);
@@ -124,7 +136,7 @@ CPL_connection_bridge = PLroundcorners(PLsquare(2*x,14),[3,4],5);
 CPL_connection_holes = PLtrans(PLcircle(axle_R),[x-axle_R-3 1]);
 CPL_connection_holes = CPLbool('+',CPL_connection_holes,VLswapX(CPL_connection_holes));
 
-CPL_connection_holes_cutout = PLtrans(PLroundcorners(PLsquare((axle_R+4)*2),[1,2,4],[5,3,5],[-2,4]),[x-axle_R-3 1]);
+CPL_connection_holes_cutout = PLtrans(PLroundcorners(PLsquare((axle_oR)*2),[1,2,4],[5,3,5],[-2,4]),[x-axle_R-3 1]);
 CPL_connection_holes_cutout = CPLbool('+',CPL_connection_holes_cutout,VLswapX(CPL_connection_holes_cutout));
 
 CPL_connection_bridge_outside = CPLbool('-',CPL_connection_bridge,CPL_connection_holes);
@@ -137,7 +149,6 @@ SG_middle_bridge = SGtransrelSG(SG_connection_bridge,SG_plunger,'rotx',pi/2,'ont
 
 SG_plunger = SGcat(SG_plunger,SG_middle_bridge);
 
-% SGplot(SG_plunger);
 % 
 %% PATH
 CPL_path = [];
@@ -173,8 +184,55 @@ SG_path_slot_stops_anti = SGtransrelSG(SG_path_slot_stops_anti,SG_path,'roty',pi
 SG_path = SGcat(SG_path,SG_path_slot_stops_anti);
 
 
+%% SGconnector 
+length_connector = 25;
+
+CPL_connector_PG = CPLconvexhull([PLcircle(axle_oR);PLtrans(PLcircle(axle_oR),[0 length_connector])]);
+CPL_connector_PG = CPLbool('-',CPL_connector_PG,PLcircle(axle_R));
+CPL_connector_PG = CPLbool('-',CPL_connector_PG,PLtrans(PLcircle(axle_R),[0 length_connector]));
+
+SG_connector_PG = SGofCPLz(CPL_connector_PG,9.5);
+SG_connector_PG = SGtransrelSG(SG_connector_PG,'','centerz');
+H_b = [rotz(140) [0;0;0]; 0 0 0 1];
+SG_connector_PG = SGTset(SG_connector_PG,'B',H_b);
+
+H_f = [rotz(0) [0;length_connector;0]; 0 0 0 1];
+SG_connector_PG = SGTset(SG_connector_PG,'F',H_f);
+
+%% SGgripper 
+distance_connection = 12;
+
+CPL_gripper = CPLconvexhull([PLcircle(axle_oR);PLtrans(PLcircle(axle_oR),[0 distance_connection*5])]);
+CPL_gripper = CPLbool('-',CPL_gripper,PLcircle(axle_R));
+CPL_gripper = CPLbool('-',CPL_gripper,PLtrans(PLcircle(axle_R),[0 distance_connection]));
+
+CPL_gripper_mid = CPLconvexhull([PLtrans(PLcircle(axle_oR),[0 distance_connection]);PLtrans(PLcircle(axle_oR),[0 distance_connection*5])]);
+CPL_gripper_mid = CPLbool('-',CPL_gripper_mid,PLtrans(PLcircle(axle_R),[0 distance_connection]));
+
+SG_gripper_sides = SGofCPLz(CPL_gripper,4.75);
+SG_gripper_mid = SGofCPLz(CPL_gripper_mid,10);
+
+SG_gripper = SGstack('z',SG_gripper_sides,SG_gripper_mid,SG_gripper_sides);
+SG_gripper = SGtransrelSG(SG_gripper,'','centerz');
+
+H_b = [rotz(90) [0;0;0]; 0 0 0 1];
+SG_gripper = SGTset(SG_gripper,'F',H_b);
+
+H_f = [rotz(0) [0;distance_connection;0]; 0 0 0 1];
+SG_gripper = SGTset(SG_gripper,'B',H_f);
+
+
+%% SGTchains
+
+SGs = {SG_main_body,SG_gripper,SG_connector_PG};
+fc = SGTframeChain(1,[1 'F1' 2 'B' 2 'F' 3 'B' 1 'F2' 2 'B' 4 'F' 3 'B']);
+
+SGc = SGTchain(SGs,[0],'',fc);
+SGplot(SGc);
+
+
 %% PLOTS
-SGplot(SG_main_body);
+% SGplot(SG_main_body);
 SG_path = SGtransrelSG(SG_path,'','rotx',pi/2,'transz',39,'transy',19.5);
 SGplot(SG_path);
 
