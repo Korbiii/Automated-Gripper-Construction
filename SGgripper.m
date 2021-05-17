@@ -22,7 +22,7 @@ finger_tip_length = 45;
 gripper_angles = [0,180];
 
 conn_servo_name = 'sm40bl';
-conn_type  = 'x';
+conn_type  = 'l';
 
 
 %% Default variables
@@ -91,6 +91,8 @@ if conn_type == 'x'
 	[SG_connector,CPL_connector] = SGbracket(conn_servo_name);
 elseif conn_type == 'z'
 	[SG_connector, CPL_connector] = SGrotationdisk(conn_servo_name);
+elseif conn_type == 'l'
+	[SG_connector, CPL_connector] = SGrotatinglockadapter(1);
 end
 
 

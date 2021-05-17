@@ -2,10 +2,9 @@
 %	=== INPUT PARAMETERS ===
 %	PL:     Contour of PL you to search throguh
 %	=== OUTPUT RESULTS ======
-function [PL] = PLroundcorners(PL,corner_numbers,varargin)
+function [PL] = PLchamfercorners(PL,corner_numbers,varargin)
 radius = ones(1,size(corner_numbers,2)); if nargin>=3 && ~isempty(varargin{1}); radius=varargin{1}; end
 connection = []; if nargin >=4 && ~isempty(varargin{2}); connection = varargin{2}; end
-round = 1; if nargin >=5 && ~isempty(varargin{3}); round = varargin{3}; end
 if(size(radius,1)==1)
     radius = repmat(radius,1,size(corner_numbers,2));
 end
@@ -35,11 +34,8 @@ for i=1:size(corner_numbers,2)
 	end	
     following_point = PL(corner_numbers(i),:)+(v1*abs(radius(i)));
     trailing_point = PL(corner_numbers(i),:)+(v2*abs(radius(i)));
-	if round
-		corners{end+1} = PLcircarc2([trailing_point;PL(corner_numbers(i),:);following_point]);
-	else
-		corners{end+1} = [trailing_point;following_point];
-	end
+     corners{end+1} = PLcircarc2([trailing_point;PL(corner_numbers(i),:);following_point]);
+    corners{end+1} = [trailing_point;following_point];
     [is_member,pos] = ismember(corner_numbers(i),abs(connection));
     if is_member
         if connection(pos) <0
