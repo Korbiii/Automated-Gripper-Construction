@@ -1,13 +1,34 @@
-function [SG,CPL] = SGLCLzdof(servo_name,varargin)
-clf;
-servo_name = lower(servo_name);
+function [SG,CPL] = SGLCLzdof(varargin)
+servo_name = 'sm40bl';
+attach_dof = 'z';
+attach_servo = 'sm40bl';
+
+i_idx = 1;
+while i_idx<=size(varargin,2)
+	if ~ischar(varargin{i_idx})
+		i_idx = i_idx+1;
+		continue;
+	end
+	switch varargin{i_idx}
+		case 'servo'
+			servo_name = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'attach_dof'
+			attach_dof = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'attach_servo'
+			attach_servo = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		otherwise
+			error(varargin{i_idx} + " isn't a valid flag!");
+	end
+	i_idx = i_idx+1;
+end
+
 servo = readServoFromTable(servo_name);
 
-attach_dof = 0; if nargin>=2 && ~isempty(varargin{1}); attach_dof=varargin{1}; end
-attach_servo = 'sm40bl'; if nargin>=3 && ~isempty(varargin{2}); attach_servo=varargin{2}; end
-
 tol = 0.5;
-screw_length = 14-3;
+screw_length = 12-3;
 
 %% Servomount
 distance_axis = (servo.length/2)+servo.shaft_offs;
@@ -37,20 +58,26 @@ if(~isnan(servo.screw_mount_x))
 	t_max = max(servo.PL_cable_gap_ver(:,2));
 	avail_screw_mounts = (servo.screw_mount_x(:,1) > t_max | servo.screw_mount_x(:,1) < t_min);
 	avail_screw_mounts = servo.screw_mount_x(avail_screw_mounts,:);
-	shaft_mid_Dis = servo.length/2-servo.shaft_offs;
 	bot = min(avail_screw_mounts(:,2))-servo.screw_R;
 	top = max(avail_screw_mounts(:,2))+servo.screw_R;
 	CPL_outside_w_screw_slots = CPLbool('-',CPL_outside_w_screw_slots,PLtrans(PLsquare(outer_radius*2,top-bot),[0 -servo.shaft_offs+t_max-tol]));
 	
 elseif(~isnan(servo.screw_mount_z))
-	%%TODO
+	CPL_screw_holes = CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z);
+	CPL_screw_holes = PLtrans(CPL_screw_holes,[0 -servo.shaft_offs]);
+	CPL_outside = CPLbool('-',CPL_outside,CPL_screw_holes);
+	CPL_outside_small = CPLbool('-',CPL_outside_small,CPL_screw_holes);
 end
 
-SG_front = SGof2CPLsz(CPL_outside_small,CPL_outside,3);
+side_panels_thickness = ((servo.connect_dis-servo.height)/2)-tol;
+CPL_outside_small = CPLaddauxpoints(CPL_outside_small,0.5);
+CPL_outside = CPLaddauxpoints(CPL_outside,0.5);
+
+SG_front = SGof2CPLsz(CPL_outside_small,CPL_outside,side_panels_thickness,'angle');
 SG_1 = SGofCPLz(CPL_outside_w_screw_slots,start_cable_gap);
 SG_2 = SGofCPLz(CPL_outside_w_cable_slots,cable_gap_length);
 SG_3 = SGofCPLz(CPL_outside_w_screw_slots,servo.height-cable_gap_length-start_cable_gap);
-SG_back = SGof2CPLsz(CPL_outside,CPL_outside_small,3);
+SG_back = SGof2CPLsz(CPL_outside,CPL_outside_small,side_panels_thickness,'angle');
 
 if(~isnan(servo.screw_mount_x))
 	
@@ -92,22 +119,6 @@ if(~isnan(servo.screw_mount_x))
 	SG_screw_TH = SGtransrelSG(SG_screw_TH,SG_1,'roty',-pi/2,'aligntop','alignleft','transy',-servo.shaft_offs+tol);
 	SG_screw_TH = SGcat(SG_screw_TH,SGmirror(SG_screw_TH,'yz'));
     SG_1 = SGcat(SG_1,SG_screw_TH);
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-% 	CPL_screws_small = PLsquare(servo.height-cable_gap_length-start_cable_gap,top-bot);
-% 	CPL_screws_small = PLtrans(CPL_screws_small,[0 -(top-bot)+servo.shaft_offs-tol]);
-% 	
-% % 	screw_hols = PLtrans(CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_x),[0 0])
-% 	SG_screws_small = SGofCPLz(CPL_screws_small,screw_length);
-% 	SG_screws_small = SGtransrelSG(SG_screws_small,SG_3,'roty',pi/2,'transy',-shaft_mid_Dis-top/2,'transx',servo.width/2,'aligntop');
 elseif(~isnan(servo.screw_mount_z))
 	%%TODO
 end
@@ -116,7 +127,7 @@ end
 SG = SGstack('z',SG_front,SG_1,SG_2,SG_3,SG_back);
 SG = SGtransrelSG(SG,'','rotx',pi/2,'centery');
 
-CPL_slice = CPLofSGslice(SG,min(SG.VL(:,2)));
+CPL_slice = CPLofSGslice(SG,min(SG.VL(:,3))+0.1);
 CPL_out = CPLconvexhull(CPL_slice);
 CPL_inner = CPLbool('+',PLsquare(servo.width,servo.height-10),VLswapY(servo.PL_cable_gap_ver));
 CPL = [CPL_out;NaN NaN;CPL_inner];
@@ -124,58 +135,17 @@ CPL = CPLaddauxpoints(CPL,0.5);
 H_f = [rotx(90) [0;0;0]; 0 0 0 1];
 SG = SGTset(SG,'F',H_f);
 if attach_dof ~= 0
-    if attach_dof == 'z'
-        [SG_connector,CPL_connector] = SGrotationdisk(attach_servo);
-    elseif attach_dof == 'x'
-        [SG_connector,CPL_connector] = SGbracket(attach_servo);
-	end	
+	[SG_connector,CPL_connector] = SGconnAdaptersLCL('servo',attach_servo,'adapter_type',attach_dof);
 	SG_connection = SGof2CPLsz(CPL_connector,CPL,10,'center');	
 	SG = SGstack2('z',SG_connector,SG_connection,SG);
 end
 
 SG = SGtransrelSG(SG,'','alignbottom');
 
-end
-
-%%  [SG] = SGstack(SGs)
-%	=== INPUT PARAMETERS ===
-%   dir:        Direction of stacking y,x,z
-%	SGs:        Array of SGs
-
-%	=== OUTPUT RESULTS ======
-%	SG:         SG of stacked SGs
-function [SG] = SGstack(dir,varargin)
-SG = varargin{1};
-for i=2:nargin-1
-    switch dir
-        case 'z'
-            SG = SGcat(SG,SGontop(varargin{i},SG));            
-        case 'y'
-            SG = SGcat(SG,SGinfront(varargin{i},SG));       
-        case 'x'
-            SG = SGcat(SG,SGleft(varargin{i},SG));
-    end
+if nargout == 0
+	clf;
+	SGplot(SG);
 end
 end
 
-%%  [SG] = SGstack(SGs)
-%	=== INPUT PARAMETERS ===
-%   dir:        Direction of stacking y,x,z
-%	SGs:        Array of SGs
-
-%	=== OUTPUT RESULTS ======
-%	SG:         SG of stacked SGs
-function [SG] = SGstackb(dir,varargin)
-SG = varargin{1};
-for i=2:nargin-1
-    switch dir
-        case 'z'
-            SG = SGbool('+',SG,SGontop(varargin{i},SG));            
-        case 'y'
-            SG = SGbool('+',SGinfront(varargin{i},SG));       
-        case 'x'
-            SG = SGbool('+',SGleft(varargin{i},SG));
-    end
-end
-end
 

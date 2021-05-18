@@ -22,7 +22,7 @@ finger_tip_length = 45;
 gripper_angles = [0,180];
 
 conn_servo_name = 'sm40bl';
-conn_type  = 'l';
+conn_type  = 'rotLock';
 
 
 %% Default variables
@@ -87,14 +87,7 @@ outer_radius = 26.5;
 distance_axis = servo.length-servo.shaft_offs;
 top_height = (axle_R*2+4)+10;
 
-if conn_type == 'x'
-	[SG_connector,CPL_connector] = SGbracket(conn_servo_name);
-elseif conn_type == 'z'
-	[SG_connector, CPL_connector] = SGrotationdisk(conn_servo_name);
-elseif conn_type == 'l'
-	[SG_connector, CPL_connector] = SGrotatinglockbottom(1);
-end
-
+[SG_connector,CPL_connector] = SGconnAdaptersLCL('servo',conn_servo_name,'adapter_type',conn_type);
 
 %% Servocage
 CPL_servo_outer = PLtrans(PLsquare(servo.width+2*(servo.cable_gap+2),servo.length+2*(screw_length)),[0,-(servo.length-distance_axis)]);

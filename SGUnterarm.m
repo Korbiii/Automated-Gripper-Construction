@@ -5,7 +5,7 @@ arm_height_increase = 20;
 angle = 0;
 
 
-arm_length = 85; if nargin >=1 && ~isempty(varargin{1}) arm_length = varargin{1}; end
+arm_length = 60; if nargin >=1 && ~isempty(varargin{1}) arm_length = varargin{1}; end
 dof = 'z'; if nargin >=2 && ~isempty(varargin{2}) dof = varargin{2}; end
 servo_name = 'sm40bl'; if nargin >=3 && ~isempty(varargin{3}) servo_name = varargin{3}; end
 
@@ -102,11 +102,11 @@ end
 
 %% Top Servo mount
 if (dof == 'z' )
-	[SG_bottom,SG_lid,CPL] = SGRotatingattach(servo_name);
+	[SG_bottom,SG_lid,CPL] = SGRotatingattach();
 	SG_bottom = SGtrans(SG_bottom,rot(angle));
 	CPL = PLtransR(CPL,rot(angle));	
 elseif(dof == 'x')
-	[SG_bottom,CPL] = SGLCLzdof(servo_name);
+	[SG_bottom,CPL] = SGLCLzdof();
 	SG_bottom = SGtrans(SG_bottom,rot(angle));
 	CPL = PLtransR(CPL,rot(angle));	
 end
@@ -138,142 +138,8 @@ if nargout== 0
     SGplot(SG);
 end
 
-
+% SGwriteSTL(SG);
 
 
 end
 
-%%  [SG] = SGstack(SGs)
-%	=== INPUT PARAMETERS ===
-%   dir:        Direction of stacking y,x,z
-%	SGs:        Array of SGs
-
-%	=== OUTPUT RESULTS ======
-%	SG:         SG of stacked SGs
-function [SG] = SGstack(dir,varargin)
-SG = varargin{1};
-for i=2:nargin-1
-    switch dir
-        case 'z'
-            SG = SGcat(SG,SGontop(varargin{i},SG));            
-        case 'y'
-            SG = SGcat(SG,SGinfront(varargin{i},SG));       
-        case 'x'
-            SG = SGcat(SG,SGleft(varargin{i},SG));
-    end
-end
-end
-
-%%  [PL] = PLroundcorners(PL,indices,varargin)
-%	=== INPUT PARAMETERS ===
-%	PL:     Contour of PL you to search throguh
-%	=== OUTPUT RESULTS ======
-function [PL] = PLroundcorners(PL,corner_numbers,varargin)
-radius = ones(1,size(corner_numbers,2)); if nargin>=3 && ~isempty(varargin{1}); radius=varargin{1}; end
-connection = []; if nargin >=4 && ~isempty(varargin{2}); connection = varargin{2}; end
-if(size(radius,1)==1)
-    radius = repmat(radius,1,size(corner_numbers,2));
-end
-try
-    PL_save = CPLselectinout(PL,1);
-catch
-    PL_save =[];
-end
-
-PL = CPLselectinout(PL,0);
-
-corners = {};
-for i=1:size(corner_numbers,2)
-    if corner_numbers(i) == 1
-        v1 = PL(corner_numbers(i)+1,:)-PL(corner_numbers(i),:);
-        v1 = v1/norm(v1);
-        v2 = PL(size(PL,1),:)-PL(corner_numbers(i),:);
-        v2 = v2/norm(v2);
-    elseif corner_numbers(i) == size(PL,1)
-        v1 = PL(1,:)-PL(corner_numbers(i),:);
-        v1 = v1/norm(v1);
-        v2 = PL(corner_numbers(i)-1,:)-PL(corner_numbers(i),:);
-        v2 = v2/norm(v2);
-    else
-        v1 = PL(corner_numbers(i)+1,:)-PL(corner_numbers(i),:);
-        v1 = v1/norm(v1);
-        v2 = PL(corner_numbers(i)-1,:)-PL(corner_numbers(i),:);
-        v2 = v2/norm(v2);
-    end
-    following_point = PL(corner_numbers(i),:)+(v1*abs(radius(i)));
-    trailing_point = PL(corner_numbers(i),:)+(v2*abs(radius(i)));
-    corners{end+1} = PLcircarc2([trailing_point;PL(corner_numbers(i),:);following_point]);
-    [is_member,pos] = ismember(corner_numbers(i),abs(connection));
-    if is_member
-        if connection(pos) <0
-            corners{end} = PLmirror0(corners{end},[trailing_point;PL(corner_numbers(i),:)],1);
-        else
-            corners{end} = PLmirror0(corners{end},[following_point;PL(corner_numbers(i),:)],1);
-        end
-    end
-end
-for i=1:size(corner_numbers,2)
-    if corner_numbers(i) == 1
-        PL = [corners{i};PL(corner_numbers(i)+1:end,:)];
-    elseif corner_numbers(i)==size(PL,1)
-        PL = [PL(1:corner_numbers(i)-1,:);corners{i}];
-    else
-        PL = [PL(1:corner_numbers(i)-1,:);corners{i};PL(corner_numbers(i)+1:end,:)];
-    end
-    corner_numbers = corner_numbers + size(corners{i},1)-1;
-    
-end
-if ~isempty(PL_save)
-    PL = [PL;NaN NaN;PL_save];
-end
-end
-
-%%  [PL] = PLcircarc2(PL,radius)
-%	=== INPUT PARAMETERS ===
-
-%	=== OUTPUT RESULTS ======
-function [PL] = PLcircarc2(PL)
-v1 = PL(1,:)-PL(2,:);
-v1 = v1/norm(v1);
-v2 = PL(3,:)-PL(2,:);
-v2 = v2/norm(v2);
-
-v1_n = v1*rot(pi/2);
-v2_n = v2*rot(pi/2);
-
-cp = cross2edges(PL(1,:),v1_n,PL(3,:),v2_n);
-dist = min([pdist2(PL(1,:),cp),pdist2(PL(3,:),cp)]);
-
-v3 = PL(1,:)-cp;
-v4 = PL(3,:)-cp;
-v5 = [1 0];
-
-phi_1 = -acos2(v3,v5);
-phi_2 = -acos2(v4,v3);
-
-PL_circle = PLtrans(PLcircseg(dist,'',phi_1,phi_1+phi_2),cp);
-PL = PL_circle;
-
-end
-
-
-%%  [SG] = SGstack(SGs)
-%	=== INPUT PARAMETERS ===
-%   dir:        Direction of stacking y,x,z
-%	SGs:        Array of SGs
-
-%	=== OUTPUT RESULTS ======
-%	SG:         SG of stacked SGs
-function [SG] = SGstackb(dir,varargin)
-SG = varargin{1};
-for i=2:nargin-1
-    switch dir
-        case 'z'
-            SG = SGbool('+',SG,SGontop(varargin{i},SG,0.005));            
-        case 'y'
-            SG = SGbool('+',SGinfront(varargin{i},SG));       
-        case 'x'
-            SG = SGbool('+',SGleft(varargin{i},SG));
-    end
-end
-end
