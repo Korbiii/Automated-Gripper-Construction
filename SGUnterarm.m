@@ -1,9 +1,13 @@
-function [SG] = SGUnterarm(arm_length,dof,servo_name)
+function [SG] = SGUnterarm(varargin)
 
 
 arm_height_increase = 20;
 angle = 0;
 
+
+arm_length = 85; if nargin >=1 && ~isempty(varargin{1}) arm_length = varargin{1}; end
+dof = 'z'; if nargin >=2 && ~isempty(varargin{2}) dof = varargin{2}; end
+servo_name = 'sm40bl'; if nargin >=3 && ~isempty(varargin{3}) servo_name = varargin{3}; end
 
 
 %% Parameters
@@ -112,7 +116,12 @@ ind = (SG_top_half.VL(:,3) == max(SG_top_half.VL(:,3)));
 min_y_top_arm = min(SG_top_half.VL(ind,2));
 SG_bottom = SGtrans(SG_bottom,[0 min_y_top_arm-min_y_servo_mount 0]);
 CPL = PLtrans(CPL,[0 min_y_top_arm-min_y_servo_mount]);
+
+CPL_crossS_3 = CPLaddauxpoints(CPL_crossS_3,0.5);
+CPL = CPLaddauxpoints(CPL,0.5);
 SG_connection = SGof2CPLsz(CPL_crossS_3,CPL,10,'center','miny');
+
+
 SG_servo_attachment = SGstack2('z',SG_connection,SG_bottom);
 
 SG_arm = SGstack2('z',SG_conn_arm_bottom,SG_bottom_half,SG_top_half,SG_servo_attachment);

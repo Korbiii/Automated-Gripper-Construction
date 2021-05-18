@@ -119,14 +119,17 @@ if attach_dof ~= 0
         [SG_connector,CPL_coonector] = SGrotationdisk(attach_servo);
     elseif attach_dof == 'x'
         [SG_connector,CPL_coonector] = SGbracket(attach_servo);
-    end
+	end
+	CPL_coonector = CPLaddauxpoints(CPL_coonector,0.5);
+	CPL = CPLaddauxpoints(CPL,0.5);
     SG_connection = SGof2CPLsz(CPL_coonector,CPL,10);
     SG = SGstack2('z',SG_connector,SG_connection,SG);
 end
 
 H_f = [roty(180) [0;0;max(SG.VL(:,3))]; 0 0 0 1];
 SG = SGTset(SG,'F',H_f);
-clf;
+% clf;
 SGplot(SG);
 SGplot(SGtransrelSG(SG_lid,SG,'aligntop',10));
+SGwriteSTL(SG);
 end

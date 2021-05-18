@@ -92,12 +92,12 @@ if conn_type == 'x'
 elseif conn_type == 'z'
 	[SG_connector, CPL_connector] = SGrotationdisk(conn_servo_name);
 elseif conn_type == 'l'
-	[SG_connector, CPL_connector] = SGrotatinglockadapter(1);
+	[SG_connector, CPL_connector] = SGrotatinglockbottom(1);
 end
 
 
 %% Servocage
-CPL_servo_outer = PLtrans(PLsquare(servo.width+2*servo.cable_gap,servo.length+2*(screw_length)),[0,-(servo.length-distance_axis)]);
+CPL_servo_outer = PLtrans(PLsquare(servo.width+2*(servo.cable_gap+2),servo.length+2*(screw_length)),[0,-(servo.length-distance_axis)]);
 CPL_grip_attach = [-(attach_width+5)/2 -max_grip_R;(attach_width+5)/2 -max_grip_R;(attach_width+5)/2 0;-(attach_width+5)/2 0];
 CPL_grip_attach_test = [-(attach_width+5)/2 -max_grip_R;(attach_width+5)/2 -max_grip_R];
 CPL_grip_attach_test = CPLaddauxpoints(CPL_grip_attach_test,0.5);

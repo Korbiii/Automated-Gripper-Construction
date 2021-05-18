@@ -133,26 +133,7 @@ if attach_dof ~= 0
 	SG = SGstack2('z',SG_connector,SG_connection,SG);
 end
 
-
-
-%% Screw Holes
-% screw_rad = 1.5;
-% SG_hole = SGofCPLz(PLcircle(screw_rad),servo.width+10);
-% SG_HOLE = SGofCPLz(PLcircle(screw_rad*2),servo.width);
-% SG_hole = SGstackb('z',SG_HOLE,SG_hole,SG_HOLE);
-% SG_hole = SGtransrelSG(SG_hole,SG_hole,'roty',pi/2,'centerx');
-% SG_hole_1 = SGtransrelSG(SG_hole,SG_hole,'transy',-6,'transz',-4);
-% SG_hole_2 = SGtransrelSG(SG_hole_1,SG_hole_1,'transz',-24);
-% SG_servo_cage = SGbool('-',SG_top_cage,SG_hole_1);
-% SG_servo_cage = SGbool('-',SG_servo_cage,SG_hole_2);
-% 
-
-
-
 SG = SGtransrelSG(SG,'','alignbottom');
-
-SGplot(SG);
-SGwriteSTL(SG);
 
 end
 
