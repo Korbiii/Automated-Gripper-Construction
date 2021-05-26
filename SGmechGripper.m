@@ -1,16 +1,19 @@
 function SG = SGmechGripper()
 clf;
-main_R = 30;
+main_R = 35;
 main_H = 40;
 
 servo_name = 'sm40bl';
+conn_type = 'rotLock';
 
 path_depth = 10;
-spring_guide_R = 5;
-spring_inner_R = 1.6;
-spring_R = 2.5;
+spring_R = 9.5/2;
+spring_inner_R = spring_R-2;
+spring_guide_R = spring_R+3;
+spring_length = 50;
+spring_compressed_height = 16;
+
 plunger_guide_W = 5;
-spring_length = 30;
 axle_R = 3;
 axle_oR = axle_R+3;
 gripper_attach_R = main_R+20;
@@ -28,11 +31,19 @@ mid_slot = 2*(servo.mount_screw_R+servo.screw_R);
 
 CPL_main = PLcircle(main_R);
 
-[SG_connector,CPL_connection] =  SGrotationdisk(servo_name,0);
-CPL_connection =  CPLbool('-',CPL_connection,CPL_screw_pattern);
+[SG_connector,CPL_connection] = SGconnAdaptersLCL('servo',servo_name,'adapter_type',conn_type,'cable',0);
 
-CPL_2main_connection = CPLbool('-',CPL_main,CPL_screwhead_pattern);
-CPL_connection =  CPLbool('-',CPL_connection,CPL_screwhead_pattern);
+if conn_type == 'z'
+	CPL_connection =  CPLbool('-',CPL_connection,CPL_screw_pattern);
+	CPL_2main_connection = CPLbool('-',CPL_main,CPL_screwhead_pattern);
+	CPL_connection =  CPLbool('-',CPL_connection,CPL_screwhead_pattern);
+else
+	CPL_2main_connection = CPL_main;
+end
+
+
+CPL_connection = CPLaddauxpoints(CPL_connection,0.5);
+CPL_2main_connection = CPLaddauxpoints(CPL_2main_connection,0.5);
 SG_2main_connection = SGof2CPLsz(CPL_connection,CPL_2main_connection,10);
 
 CPL_mid_slot = PLsquare(main_R,mid_slot);
@@ -76,11 +87,13 @@ SG_top_main_body = SGofCPLz(CPL_top,7);
 
 CPL_spring_internal_guides = PLcircle(spring_inner_R);
 CPL_spring_internal_guides_chamfer_bot = PLcircle(spring_inner_R+1);
-CPL_spring_internal_guides_chamfer_top = PLcircle(spring_inner_R-1);
+CPL_spring_internal_guides_chamfer_top = PLcircle(spring_inner_R/2);
 
-SG_spring_internal_guides = SGofCPLz(CPL_spring_internal_guides,spring_length);
+SG_spring_internal_guides = SGofCPLz(CPL_spring_internal_guides,spring_length-1-(spring_inner_R/2)-10);
 SG_spring_internal_guides_cham_bot = SGof2CPLsz(CPL_spring_internal_guides_chamfer_bot,CPL_spring_internal_guides,1);
-SG_spring_internal_guides_cham_top = SGof2CPLsz(CPL_spring_internal_guides,CPL_spring_internal_guides_chamfer_top,1);
+SG_spring_internal_guides_cham_top = SGof2CPLsz(CPL_spring_internal_guides,CPL_spring_internal_guides_chamfer_top,spring_inner_R/2);
+
+
 SG_spring_internal_guides = SGstack('z',SG_spring_internal_guides_cham_bot,SG_spring_internal_guides,SG_spring_internal_guides_cham_top);
 SG_spring_internal_guides = SGtrans(SG_spring_internal_guides,[(main_R/2)+spring_guide_R 0 0]);
 SG_spring_internal_guides = SGcat(SG_spring_internal_guides,SGmirror(SG_spring_internal_guides,'yz'));
@@ -117,13 +130,18 @@ CPL_outer_spring_guides = PLtrans(PLcircle(spring_guide_R-0.5),[(main_R/2)+sprin
 CPL_outer_spring_guides = CPLbool('+',CPL_outer_spring_guides,VLswapX(CPL_outer_spring_guides));
 CPL_plunger_guide_male = CPLbool('+',CPL_plunger_guide_male,CPL_outer_spring_guides);
 
-SG_top_plunger = SGofCPLz(CPL_plunger_guide_male,main_H-spring_length+10);
+
+CPL_outer_inner_guides = PLtrans(PLcircle(spring_inner_R+0.5),[(main_R/2)+spring_guide_R  0]);
+CPL_outer_inner_guides = CPLbool('+',CPL_outer_inner_guides,VLswapX(CPL_outer_inner_guides));
+CPL_plunger_guide_male = CPLbool('-',CPL_plunger_guide_male,CPL_outer_inner_guides);
+
+SG_top_plunger = SGofCPLz(CPL_plunger_guide_male,main_H-spring_compressed_height+10);
 
 CPL_inner_spring_guides = PLtrans(PLcircle(spring_R),[(main_R/2)+spring_guide_R  0]);
 CPL_inner_spring_guides = CPLbool('+',CPL_inner_spring_guides,VLswapX(CPL_inner_spring_guides));
 CPL_plunger_guide_male = CPLbool('-',CPL_plunger_guide_male,CPL_inner_spring_guides);
 
-SG_plunger_bottom =  SGofCPLz(CPL_plunger_guide_male,spring_length);
+SG_plunger_bottom =  SGofCPLz(CPL_plunger_guide_male,spring_compressed_height);
 SG_plunger = SGstack('z',SG_plunger_bottom,SG_top_plunger);
 
 CPL_bridge_body = PLroundcorners(PLsquare(main_R+1,10),[1,2],15,[1 -2]);
@@ -221,23 +239,23 @@ SG_gripper = SGTset(SG_gripper,'F',H_b);
 H_f = [rotz(0) [0;distance_connection;0]; 0 0 0 1];
 SG_gripper = SGTset(SG_gripper,'B',H_f);
 
-
+SGwriteSTL(SG_main_body);
 %% SGTchains
 
-SGs = {SG_main_body,SG_gripper,SG_connector_PG};
-fc = SGTframeChain(1,[1 'F1' 2 'B' 2 'F' 3 'B' 1 'F2' 2 'B' 4 'F' 3 'B']);
-
-SGc = SGTchain(SGs,[0],'',fc);
-SGplot(SGc);
+% SGs = {SG_main_body,SG_gripper,SG_connector_PG};
+% fc = SGTframeChain(1,[1 'F1' 2 'B' 2 'F' 3 'B' 1 'F2' 2 'B' 4 'F' 3 'B']);
+% 
+% SGc = SGTchain(SGs,[0],'',fc);
+% SGplot(SGc);
 
 
 %% PLOTS
-% SGplot(SG_main_body);
-SG_path = SGtransrelSG(SG_path,'','rotx',pi/2,'transz',39,'transy',19.5);
-SGplot(SG_path);
-
-SG_plunger = SGtransrelSG(SG_plunger,'','transz',20);
-SGplot(SG_plunger);
+% % SGplot(SG_main_body);
+% SG_path = SGtransrelSG(SG_path,'','rotx',pi/2,'transz',39,'transy',19.5);
+% SGplot(SG_path);
+% 
+% SG_plunger = SGtransrelSG(SG_plunger,'','transz',20);
+% SGplot(SG_plunger);
 
 
 

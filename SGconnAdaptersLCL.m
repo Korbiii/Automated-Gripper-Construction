@@ -95,7 +95,7 @@ switch adapter_type
 		H_b = [rotx(90) [0;0;0]; 0 0 0 1];
 		SG = SGTset(SG,'B',H_b);
 		
-		CPL = CPLconvexhull(CPLofSGslice(SG,max(SG.VL(:,3))-0.1));
+		CPL = CPLconvexhull(CPLofSGslice(SG,max(SG.VL(:,3))-1));
 		gap_bracket = screw_length-missing_screw_length;
 		CPL = [CPL;NaN NaN;PLsquare(2*max(CPL(:,1)-5),2*max(CPL(:,2)-gap_bracket-5))];
 		if adapter_type == 'x'

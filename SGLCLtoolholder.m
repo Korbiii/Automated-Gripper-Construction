@@ -1,7 +1,7 @@
 function [SG] = SGLCLtoolholder()
-clf;
-tool_R =  10;
-tool_angle = 0;
+servo_name = 'sm40bl'
+tool_R =  5;
+tool_angle = 30;
 handle_length = 40;
 
 
@@ -28,7 +28,7 @@ CPL_stop = PLroundcorners(PLsquare(handle_length),[1,2,3,4],5);
 SG_stop = SGofCPLz(CPL_stop,4);
 
 insert_length = handle_length/sin(tool_angle);
-insert_length = min(insert_length,handle_length)-4;
+insert_length = min(insert_length,handle_length);
 CPL_insert = CPLbool('-',PLsquare(2*tool_R),PLcircle(tool_R));
 CPL_insert_holder = CPLbool('x',PLcircle(tool_R),CPLcopyradial(PLcircle(1),tool_R,10));
 CPL_insert = CPLbool('+',CPL_insert,CPL_insert_holder);
@@ -39,12 +39,18 @@ SG_main_body = SGstack('z',SG_stop,SG_main_body);
 SG_main_body = SGtransrelSG(SG_main_body,'','centerz',-2);
 
 
-[SG_connector, CPL_connector] = SGrotatingdiskwithoutservo('sm40bl');
-SG_connection = SGof2CPLsz(CPL_connector,CPLaddauxpoints(CPL_stop,1),10);
+[SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type','rotLock','servo',servo_name,'cable',0);
+CPL_connector = CPLaddauxpoints(CPL_connector,0.5);
+CPL_stop = CPLaddauxpoints(CPL_stop,0.5);
+SG_connection = SGof2CPLsz(CPL_connector,CPL_stop,10);
 SG = SGstack('z',SG_connector,SG_connection,SG_main_body);
 
-SGplot(SG);
-SGwriteSTL(SG);
+if nargout == 0
+	clf;
+	SGplot(SG);
+	SGwriteSTL(SG);
+end
+
 
 
 end

@@ -26,7 +26,7 @@ conn_type  = 'rotLock';
 
 
 %% Default variables
-output = 0;
+output = 1;
 
 %%Inputs
 i_idx = 1;
