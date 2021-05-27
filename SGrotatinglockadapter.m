@@ -21,15 +21,15 @@ SG_stubs = SGcircularpattern(SG_stub,3,2*pi/3);
 
 CPL_main = [outer_R-0.5 height;outer_R-0.5 0;connect_R+.5 0;connect_R+.5 height];
 CPL_main = PLroundcorners(CPL_main,1,2.5,'',0);
-SG_main = SGofCPLrot(CPL_main);
+SG_main = SGofCPLrota(CPL_main,pi-0.4,false);
+SG_main = SGcat(SGmirror(SGmirror(SG_main,'xz'),'yz'),SG_main);
 
-% CPL_locking_tri = CPLbool('x',[connect_R-.5 0;connect_R+1 -5;connect_R+1 5],PLcircle(connect_R+1));
-% SG_locking_tri = SGofCPLz(CPL_locking_tri,height);
-% SG_locking_tri = SGtransR(SG_locking_tri,rot(0,0,(1/3)*pi));
-% SG_locking_tri = SGcircularpattern(SG_locking_tri,3,2*pi/3);
-% 
-% 
-% SG_main = SGcat(SG_main,SG_locking_tri);
+
+CPL_main_connections = [outer_R-4 height;outer_R-4 0;connect_R+.5 0;connect_R+.5 height]; 
+SG_main_connections = SGofCPLrota(CPL_main_connections,0.4,false,-0.4);
+SG_main_connections = SGcat(SGmirror(SGmirror(SG_main_connections,'yz'),'xz'),SG_main_connections);
+SG_main =SGcat(SG_main,SG_main_connections);
+
 
 if print_help
 	SG_help_layer = SGofCPLz(PLcircle(outer_R-0.5),0.2);

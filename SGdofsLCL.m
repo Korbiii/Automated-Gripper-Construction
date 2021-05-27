@@ -47,7 +47,8 @@ switch dof
 		servo.length = servo.length+tol;
 		servo.height = servo.height+tol;
 		
-		outer_radius_ser = max(sqrt(servo.shaft_offs^2+(servo.width/2)^2)+3,max(servo.PL_cable_gap_hor(:,1))+3);
+		outer_radius_ser = max(sqrt(servo.shaft_offs^2+(servo.width/2)^2)+3,max(servo.PL_cable_gap_hor(:,1))+3);		
+		connection_R = outer_radius_ser-1.5-tol;
 		
 		CPL_cable_opening_lid = PLroundcorners(PLsquare((outer_radius_ser-3)*2-1,servo.connect_R*2),[1,2,3,4],servo.connect_R);
 		
@@ -113,9 +114,9 @@ switch dof
 		CPL = [CPL;NaN NaN;CPL_in_ledge_wo_screws];
 		%% Lid
 		CPL_lid_outline = CPL_out;
-		CPL_lid_top = [CPL_lid_outline;NaN NaN;PLcircle(outer_radius_ser-3)];
-		CPL_lid_top_chamfer = [PLgrow(CPL_lid_outline,1);NaN NaN;PLcircle(outer_radius_ser-3)];
-		CPL_lid_bottom = [CPL_lid_outline;NaN NaN;PLroundcorners(PLsquare((outer_radius_ser-3)*2-1,servo.connect_R*2),[1,2,3,4],servo.connect_R)];
+		CPL_lid_top = [CPL_lid_outline;NaN NaN;PLcircle(connection_R+.4)];
+		CPL_lid_top_chamfer = [PLgrow(CPL_lid_outline,1);NaN NaN;PLcircle(connection_R+.4)];
+		CPL_lid_bottom = [CPL_lid_outline;NaN NaN;PLroundcorners(PLsquare((connection_R+.5)*2-1,servo.connect_R*2),[1,2,3,4],servo.connect_R)];
 		
 		if(~isnan(servo.screw_mount_z))
 			CPL_screw_holes = PLtrans(CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z),[0 -servo.shaft_offs]);
@@ -186,7 +187,7 @@ switch dof
 		H_f = [roty(180) [0;0;max(SG.VL(:,3))]; 0 0 0 1];
 		SG = SGTset(SG,'F',H_f);
 		
-		SGwriteSTL(SG_lid);
+
 	case  {'x','y','xy','yx'}
 		servo = readServoFromTable(servo_name);
 		distance_axis = (servo.length/2)+servo.shaft_offs;
