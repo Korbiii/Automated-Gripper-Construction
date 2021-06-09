@@ -67,7 +67,6 @@ SGlayer3 = SGofCPLz(PLlayer3,13);
 SG_mid = SGstack('z',SGlayer1,SGlayer3);
 SG_bottom_conn = SGcat(SG_bottom_conn,SGtransrelSG(SG_mid,SG_bottom_conn,'alignbottom'));
 SG_bottom_conn = SGtransrelSG(SG_bottom_conn,'','transz',-legacy_adapter_H/2+2);
-
 %% ARM
 width_bottom = 50;
 width_mid = 40;
@@ -145,7 +144,7 @@ if nargout== 0
     SGplot(SG);
 end
 
-% SGwriteSTL(SG);
+SGwriteSTL(SG);
 
 
 end

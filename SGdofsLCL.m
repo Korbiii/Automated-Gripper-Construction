@@ -2,10 +2,10 @@ function [SG, CPL] = SGdofsLCL(varargin)
 
 tol = 0.5;
 servo_name = 'sm40bl';
-screw_length = 12-3;
-dof = 'z';
+thread_length = 12;
+dof = 'x';
 
-attach_dof = 0;
+attach_dof = 'z';
 attach_servo = 'sm40bl';
 
 print_help_layer = 0;
@@ -33,7 +33,7 @@ while i_idx<=size(varargin,2)
 		case 'fdm_help_layers'
 			print_help_layer = 1;
 		case 'thread_length'
-			screw_length = varargin{i_idx+1};
+			thread_length = varargin{i_idx+1};
 		otherwise
 			error(varargin{i_idx} + " isn't a valid flag!");
 	end
@@ -54,7 +54,7 @@ switch dof
 		
 		%% Main Body
 		CPL_cable_gap = PLtrans(servo.PL_cable_gap_hor,[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
-		CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLgrow(PLroundcorners(CPL_cable_gap,[1,2,3,4],servo.cable_gap/4),1.5);PLtrans([-servo.width/2-5 0;servo.width/2+5 0],[0 -servo.length+servo.shaft_offs-screw_length])]);
+		CPL_out = CPLconvexhull([PLcircle(outer_radius_ser);PLgrow(PLroundcorners(CPL_cable_gap,[1,2,3,4],servo.cable_gap/4),1.5);PLtrans([-servo.width/2-5 0;servo.width/2+5 0],[0 -servo.length+servo.shaft_offs-thread_length])]);
 		idx = find(CPL_out(:,2) == min(CPL_out(:,2)));
 		CPL_out = PLroundcorners(CPL_out,idx',3);
 		CPL_in = PLtrans(PLsquare(servo.width,servo.length),[0 -((servo.length/2)-servo.shaft_offs)+0.5*tol]);
@@ -89,7 +89,7 @@ switch dof
 			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.attach_screw_R*2)),[screw_hor_distance/2 screw_ver_distance/2]));
 			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.attach_screw_R*2)),[-screw_hor_distance/2 screw_ver_distance/2]));
 			
-			SG_screw_insert_screw = SGofCPLz(CPL_screw_inserts_screw,screw_length-4);
+			SG_screw_insert_screw = SGofCPLz(CPL_screw_inserts_screw,thread_length-4);
 			SG_screw_inserts_screw_head = SGofCPLz(CPL_screw_inserts_screw_head,0.01);
 			
 			SG_screw_inserts = SGstack('z',SG_screw_insert_screw,SG_screw_inserts_screw_head);
@@ -206,6 +206,16 @@ switch dof
 		
 		CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo.width,servo.length*2));
 		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo.width+2*servo.cable_gap,servo.length*2));
+		CPL_long_cable_gap_hor = servo.PL_cable_gap_hor;
+		CPL_long_cable_gap_hor(:,1) = CPL_long_cable_gap_hor(:,1)*2;
+		CPL_long_cable_gap_hor(:,2) = CPL_long_cable_gap_hor(:,2)*1.1;
+		
+		CPL_long_cable_gap_hor=CPLbool('-',CPL_long_cable_gap_hor,PLtrans(PLsquare(5000),[2500 0]));
+		
+		CPL_long_cable_gap_hor = PLtrans(CPL_long_cable_gap_hor,[0 -servo.shaft_offs]);
+		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside_w_cable_slots,CPL_long_cable_gap_hor);
+		
+		
 		
 		CPL_outside_w_screw_slots = CPL_outside_w_servo_slot;
 		
@@ -262,15 +272,15 @@ switch dof
 			CPL_servo_side_left = CPLbool('-',CPL_servo_side,[right -5000;right 5000;right+5000 5000;right+5000 -5000]);
 			CPL_servo_side_HH_left = CPLbool('-',CPL_servo_side_HH,[right -5000;right 5000;right+5000 5000;right+5000 -5000]);
 			
-			SG_screw_TH = SGofCPLz(CPL_servo_side_right,screw_length-3);
-			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_right,3);
+			SG_screw_TH = SGofCPLz(CPL_servo_side_right,thread_length-servo.attach_screw_depth);
+			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_right,outer_radius-(servo.width/2)-thread_length+servo.attach_screw_depth);
 			SG_screw_TH = SGstack('z',SG_screw_TH,SG_screw_HH);
 			SG_screw_TH = SGtransrelSG(SG_screw_TH,SG_3,'roty',-pi/2,'aligntop','alignleft','transy',-servo.shaft_offs+tol);
 			SG_screw_TH = SGcat(SG_screw_TH,SGmirror(SG_screw_TH,'yz'));
 			SG_3 = SGcat(SG_3,SG_screw_TH);
 			
-			SG_screw_TH = SGofCPLz(CPL_servo_side_left,screw_length-3);
-			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_left,3);
+			SG_screw_TH = SGofCPLz(CPL_servo_side_left,thread_length-servo.attach_screw_depth);
+			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_left,outer_radius-(servo.width/2)-thread_length+servo.attach_screw_depth);
 			SG_screw_TH = SGstack('z',SG_screw_TH,SG_screw_HH);
 			SG_screw_TH = SGtransrelSG(SG_screw_TH,SG_1,'roty',-pi/2,'aligntop','alignleft','transy',-servo.shaft_offs+tol);
 			SG_screw_TH = SGcat(SG_screw_TH,SGmirror(SG_screw_TH,'yz'));

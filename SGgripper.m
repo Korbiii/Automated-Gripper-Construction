@@ -432,6 +432,10 @@ CPL_lower_finger_chamfer = CPLbool('-',CPL_lower_finger_chamfer,PLtrans(PLcircle
 SG_lower_finger = SGof2CPLsz(CPL_lower_finger,CPL_lower_finger_chamfer,5,'center');
 
 CPL_lower_finger_mid = CPLconvexhull([PLtrans(PLcircle(axle_oR),[0 attachment_point]);PLtrans(PLcircle(axle_oR),[0 finger_length_low-2*(axle_oR)])]);
+p2p_length = (finger_length_low-2*(axle_oR))-attachment_point-4;
+CPL_cut_out = PLtrans(PLsquare(3,p2p_length),[-axle_oR+1.5 (finger_length_low-2*(axle_oR)-2)-p2p_length/2]);
+CPL_lower_finger_mid = CPLbool('-',CPL_lower_finger_mid,CPL_cut_out);
+
 SG_lower_finger_mid = SGofCPLz(CPL_lower_finger_mid,8.25);
 
 CPL_cover = [-(axle_oR) 2;-(axle_oR) finger_length_low-(axle_oR);16 finger_length_low-(axle_oR);25 8];
@@ -466,18 +470,27 @@ SG_finger_tip_back_attach = SGofCPLz(CPL_finger_tip_back_attach,4);
 SG_finger_tip_attach = SGstack('z',SG_finger_tip_front_attach,SG_finger_tip_back_attach,SG_finger_tip_front_attach);
 SG_finger_tip_attach = SGcat(SG_finger_tip_attach,SGmirror(SG_finger_tip_attach,'xy'));
 
-CPL_finger_tip_1 = PLsquare(16,axle_oR+12);
-CPL_finger_tip_2 = PLtrans(PLsquare(12,12),[0 -((axle_oR+12)-12)/2]);
+CPL_finger_tip_1 = PLsquare(16,axle_oR+9);
+CPL_finger_tip_2 = PLtrans(PLsquare(12,12),[0 -((axle_oR+9)-12)/2]);
 
 alpha_ratio = atan((4)/(finger_tip_length-10));
 x_ratio = tan(alpha_ratio)*10;
 
-CPL_finger_tip_3 = PLtrans(PLsquare(12-x_ratio,2),[0 -((axle_oR+12)-2)/2]);
+front_width =12-x_ratio;
+
+CPL_finger_tip_3 = PLtrans(PLsquare(front_width,2),[0 -((axle_oR+9)-2)/2]);
 
 SG_finger_tip_1 = SGof2CPLz(CPL_finger_tip_1,CPL_finger_tip_2,finger_tip_length-10);
 SG_finger_tip_2 = SGof2CPLz(CPL_finger_tip_2,CPL_finger_tip_3,10);
 SG_finger_tip = SGstack('z',SG_finger_tip_1,SG_finger_tip_2);
-SG_finger_tip = SGtransrelSG(SG_finger_tip,SG_finger_tip_attach,'rotx',-pi/2,'roty',pi/2,'behind','transx',-axle_oR/2);
+
+CPL_slice = [0 -8;0 8;finger_tip_length front_width/2;finger_tip_length -front_width/2];
+CPL_slice = [CPL_slice;NaN NaN;CPLbuffer(CPL_slice,-2)];
+SG_finger_tip_insert = SGofCPLz(CPL_slice,3);
+SG_finger_tip_insert = SGtransrelSG(SG_finger_tip_insert,SG_finger_tip,'rotx',-pi/2,'roty',-pi/2,'infront','alignbottom');
+SG_finger_tip = SGcat(SG_finger_tip,SG_finger_tip_insert);
+
+SG_finger_tip = SGtransrelSG(SG_finger_tip,SG_finger_tip_attach,'rotx',-pi/2,'roty',pi/2,'behind','transx',(-axle_oR/2)-1.5);
 
 SG_finger_top = SGcat(SG_finger_tip,SG_finger_tip_attach);
 
@@ -487,15 +500,17 @@ SG_finger_top = SGTset(SG_finger_top,'B',H_b);
 H_f = [rotz(0) [PL_attach_positons(2,:)';0]; 0 0 0 1];
 SG_finger_top = SGTset(SG_finger_top,'F',H_f);
 
+
+
 %%  Finger2horguide rod
 
 CPL_finger2horguide = CPLconvexhull([PLtrans(PLcircle(axle_oR),[0 finger2hor_length/2]);PLtrans(PLcircle(axle_oR),[0 -finger2hor_length/2])]);
 CPL_finger2horguide = CPLbool('-',CPL_finger2horguide,PLtrans(PLcircle(axle_R),[0 finger2hor_length/2]));
 CPL_finger2horguide = CPLbool('-',CPL_finger2horguide,PLtrans(PLcircle(axle_R),[0 -finger2hor_length/2]));
 
-CPL_finger2horguide_mid = CPLbool('-',CPL_finger2horguide,PLtrans(PLcircle(axle_R+3),[0 -finger2hor_length/2]));
-PL_cut = PLtransR(PLsquare(30-axle_oR,2*(axle_oR),2*(axle_oR)),rot(pi/2));
-CPL_finger2horguide_mid = CPLbool('-',CPL_finger2horguide_mid,PLtrans(PL_cut,[0 (axle_oR)+4]));
+CPL_finger2horguide_mid = CPLbool('-',CPL_finger2horguide,PLtrans(PLcircle(axle_R+4),[0 -finger2hor_length/2]));
+PL_cut = PLtransR(PLsquare(40-axle_oR,2*(axle_oR),2*(axle_oR)),rot(pi/2));
+CPL_finger2horguide_mid = CPLbool('-',CPL_finger2horguide_mid,PLtrans(PL_cut,[0 (axle_oR)]));
 
 SG_finger2horguide = SGofCPLz(CPL_finger2horguide,3.75);
 SG_finger2horguide_mid = SGofCPLz(CPL_finger2horguide_mid,8);

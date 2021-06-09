@@ -112,21 +112,22 @@ switch adapter_type
 				
 		CPL_main = CPLbool('-',PLcircle(outer_R+2),PLcircle(outer_R));
 		CPL_main_cut = CPLconvexhull([PLcircseg(outer_R+3,'',pi-0.2,pi+1);0 0]);
-		CPL_main_cut = CPLbool('+',VLswapY(VLswapX(CPL_main_cut)),CPL_main_cut);	
-		
+% 		CPL_main_cut = CPLbool('+',VLswapY(VLswapX(CPL_main_cut)),CPL_main_cut);	
+		CPL_main_cut = VLswapY(VLswapX(CPL_main_cut));
 		CPL_click_mask = CPLconvexhull([PLcircseg(outer_R+3,'',pi-.1,pi+1.1);0 0]);
 		CPL_clicks = CPLbool('x',CPL_main,CPL_click_mask);
 		
 		CPL_inner_catch = PLroundcorners([outer_R+3 0;outer_R-3.5 0;outer_R+3 -10],[2,3],[1.5,6]);
 		CPL_inner_catch = CPLbool('x',CPL_inner_catch,PLcircle(outer_R+2));		
-		CPL_inner_catch = CPLbool('+',VLswapY(VLswapX(CPL_inner_catch)),CPL_inner_catch);
-		CPL_clicks=CPLbool('+',VLswapY(VLswapX(CPL_clicks)),CPL_clicks);	
+% 		CPL_inner_catch = CPLbool('+',VLswapY(VLswapX(CPL_inner_catch)),CPL_inner_catch);
+% 		CPL_clicks=CPLbool('+',VLswapY(VLswapX(CPL_clicks)),CPL_clicks);
+		CPL_clicks = VLswapY(VLswapX(CPL_clicks));
 		CPL_clicks =CPLbool('+',CPL_clicks,CPL_inner_catch);
 		
-		CPL_thumb_button = PLroundcorners([-outer_R 0;-outer_R-8 0;-outer_R-8 -6;-outer_R+10 -12],[2,3],2);	
+		CPL_thumb_button = PLroundcorners([outer_R 0;outer_R+10 0;outer_R+10 6;+outer_R-10 10],[2,3],2);	
 		CPL_thumb_button = PLtransR(CPL_thumb_button,rot(-0.1));
 		CPL_thumb_button = CPLbool('-',CPL_thumb_button,PLcircle(outer_R));				
-		CPL_thumb_button=CPLbool('+',VLswapY(VLswapX(CPL_thumb_button)),CPL_thumb_button);	
+% 		CPL_thumb_button=CPLbool('+',VLswapY(VLswapX(CPL_thumb_button)),CPL_thumb_button);	
 			
 		CPL_clicks =CPLbool('+',CPL_clicks,CPL_thumb_button);
 		

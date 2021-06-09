@@ -1,0 +1,4 @@
+function [SG] = writeServoToTable()
+
+
+end
