@@ -1,6 +1,6 @@
 function SG = SGmechGripper(varargin)
 clf;
-
+gripper_height = 50;
 SG_object = [];
 i_idx = 1;
 while i_idx<=size(varargin,2)
@@ -11,6 +11,8 @@ while i_idx<=size(varargin,2)
 	switch varargin{i_idx}
 		case 'SG_object'
 			SG_object = varargin{i_idx+1};
+		case 'grip_H'
+			gripper_height = max(gripper_height,varargin{i_idx+1});
 	end
 	i_idx = i_idx+1;
 end
@@ -175,12 +177,10 @@ SG_middle_bridge = SGofCPLz(CPL_middle_bridge,10);
 SG_middle_bridge = SGtransrelSG(SG_middle_bridge,SG_plunger,'rotx',pi/2,'aligntop','centery');
 SG_plunger = SGcat(SG_plunger,SG_middle_bridge);
 
-
-
 CPL_connection_bridge = PLroundcorners(PLsquare(2.25*x,19),[3,4],5);
 
-CPL_connection_bridge_chafer = PLroundcorners(PLsquare(2.25*x,19),[1,2],4,'',0);
-CPL_connection_bridge = CPLbool('x',CPL_connection_bridge,CPL_connection_bridge_chafer);
+CPL_connection_bridge_chamfer = PLroundcorners(PLsquare(2.25*x,19),[1,2],4,'',0);
+CPL_connection_bridge = CPLbool('x',CPL_connection_bridge,CPL_connection_bridge_chamfer);
 
 CPL_connection_holes = PLtrans(PLcircle(axle_R),[(1.125*x)-axle_R-3 3]);
 CPL_connection_holes = CPLbool('+',CPL_connection_holes,VLswapX(CPL_connection_holes));
@@ -190,6 +190,15 @@ CPL_connection_holes_cutout = CPLbool('+',CPL_connection_holes_cutout,VLswapX(CP
 
 CPL_connection_bridge_outside = CPLbool('-',CPL_connection_bridge,CPL_connection_holes);
 CPL_connection_bridge_middle = CPLbool('-',CPL_connection_bridge,CPL_connection_holes_cutout);
+
+CPL_mid_dove = [-10 0;-5 10;5 10;10 0];
+
+CPL_connection_bridge_outside = CPLbool('-',CPL_connection_bridge_outside,CPL_mid_dove);
+CPL_connection_bridge_outside = CPLbool('-',CPL_connection_bridge_outside,PLtrans(PLsquare(main_R,3),[0 -8]));
+
+
+CPL_connection_bridge_middle = CPLbool('-',CPL_connection_bridge_middle,CPL_mid_dove);
+
 SG_connectionbridge_mid = SGofCPLz(CPL_connection_bridge_middle,10);
 SG_connectionbridge_outside = SGofCPLz(CPL_connection_bridge_outside,5);
 SG_connection_bridge = SGstack('z',SG_connectionbridge_outside,SG_connectionbridge_mid,SG_connectionbridge_outside);
@@ -250,7 +259,6 @@ SG_path_slot_stops_anti = SGofCPLz(CPL_path_slot_stops_anti,main_R-5);
 SG_path = SGstack('z',SG_path_bottom,SG_path);
 SG_path_slot_stops_anti = SGtransrelSG(SG_path_slot_stops_anti,SG_path,'roty',pi/2,'centerx','aligntop');
 SG_path = SGcat(SG_path,SG_path_slot_stops_anti);
-SGwriteSTL(SG_path);
 
 %% SGconnector 
 length_connector = 20;
@@ -301,12 +309,8 @@ SG_gripper = SGTset(SG_gripper,'F',H_b);
 H_f = [rotz(10) [0;distance_connection;0]; 0 0 0 1];
 SG_gripper = SGTset(SG_gripper,'B',H_f);
 
-SGwriteSTL(SG_gripper);
 
-%%SGgripper attachment
-
-
-gripper_height = 50;
+%%SGgripper attachments
 
 PL_gripper_blank = [-gripper_attach_R-20 -20;-gripper_attach_R-20 gripper_height-20;0 gripper_height-20;0 -20];
 
@@ -320,22 +324,28 @@ CPL_gripper = CPLbool('-',CPL_gripper,CPL_attachment_cutout);
 SG_gripper_left = SGtransrelSG(SGofCPLz(CPL_gripper,20),'','rotx',pi/2,'transz',151,'centery');
 SG_gripper_right = SGmirror(SG_gripper_left,'yz');
 
+SG_lower_attachment = SGofCPLz(PLsquare((main_R-5)*2,20),33);
+
+CPL_mid_dove_male = CPLbuffer(CPL_mid_dove,-0.2);
+SG_mid_dove = SGofCPLz(CPL_mid_dove_male,20);
+SG_mid_dove = SGtransrelSG(SG_mid_dove,SG_lower_attachment,'rotx',pi/2,'under','alignfront');
+
+SG_lower_attachment = SGcat(SG_lower_attachment,SG_mid_dove);
+SG_lower_attachment = SGtrans(SG_lower_attachment,[0 0 98]);
+
+height = max(SG_lower_attachment.VL(:,3));
+H_Object = [rotx(0) [0;0;height]; 0 0 0 1];
+SG_lower_attachment = SGTset(SG_lower_attachment,'O',H_Object);
+
 if ~isempty(SG_object)
-	SG_gripper_left = SGboolh('-',SG_gripper_left,SG_object);
-	SG_gripper_right = SGboolh('-',SG_gripper_right,SG_object);
-	
-	
+	SG_gripper_left = SGbool3('-',SG_gripper_left,SG_object);
+	SG_gripper_right = SGbool3('-',SG_gripper_right,SG_object);	
+	SG_lower_attachment = SGbool3('-',SG_lower_attachment,SG_object);	
 end
 
+SG_gripper_attachment = SGcat(SG_lower_attachment,SG_gripper_left,SG_gripper_right);
+SG_gripper_attachment.alpha = 0.45;
 % 
-% CPL_gripper_left = CPLbool('-',CPL_gripper,PLtrans(CPL_object,[0 -151 ]));
-% CPL_gripper_right = CPLbool('-',VLswapX(CPL_gripper),PLtrans(CPL_object,[0 -151 ]));
-
-SG_gripper_attachment = SGcat(SG_gripper_left,SG_gripper_right);
-% SG_gripper_attachment = SGofCPLz(CPL_gripper,20);
-
-SG_gripper_attachment = SG_gripper_attachment;
-
 % SGplot(SG_gripper_attachment);
 %% SGTchains
 
@@ -357,7 +367,6 @@ SG_plunger = SGtransrelSG(SG_plunger,'','transz',29);
 % SGwriteSTL(SG_gripper);
 % SGwriteSTL(SG_connector_PG);
 
-SG = SGcat(SGc,SG_plunger);
+SG = SGcat(SG_gripper_attachment,SGc,SG_plunger);
 
-% SGplot(SG);
 end

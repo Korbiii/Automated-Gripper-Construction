@@ -1,33 +1,39 @@
-function [SG] = SGLCLtoolholder(width_holder)
+function [SG] = SGLCLtoolholder(varargin)
 servo_name = 'sm40bl';
+width_holder = 50;
+i_idx = 1;
+while i_idx<=size(varargin,2)
+	if ~ischar(varargin{i_idx})
+		i_idx = i_idx+1; 
+		continue; 
+	end
+	switch varargin{i_idx}
+		case 'width'
+			width_holder = varargin{i_idx+1};
+		case 'height'
+			height_holder = varargin{i_idx+1};
+	end
+	i_idx = i_idx+1;
+end
 
 
+CPL_base = PLroundcorners(PLsquare(width_holder),[1,2,3,4],10);
+CPL_base_small = PLroundcorners(PLsquare(width_holder-10),[1,2,3,4],10);
+SG_base_top = SGof2CPLsz(CPL_base,CPL_base_small,5);
+SG_main_body = SGofCPLz(CPL_base,width_holder);
+SG_main_body = SGboolh('+',SG_main_body,SGontop(SG_base_top,SG_main_body));
 
-CPL_main_body = PLsquare(width_holder);
-CPL_main_body_small = PLtrans(PLsquare(width_holder-10,width_holder-5),[0 -2.5]);
-CPL_main_body = PLroundcorners(CPL_main_body,[3,4],width_holder/4);
-CPL_main_body_small = PLroundcorners(CPL_main_body_small,[3,4],width_holder/4);
-
-SG_main_body_sides = SGofCPLz(CPL_main_body,width_holder/2-5);
-SG_main_body_sides_chamfer = SGof2CPLsz(CPL_main_body,CPL_main_body_small,5);
-
-SG_main_body = SGstack('z',SG_main_body_sides,SG_main_body_sides_chamfer);
-SG_main_body = SGcat(SG_main_body,SGmirror(SG_main_body,'xy'));
-SG_main_body = SGtransrelSG(SG_main_body,'','rotx',pi/2);
-
-CPL_stop = PLroundcorners(PLsquare(width_holder),[1,2,3,4],5,'',0);
-SG_stop = SGofCPLz(CPL_stop,4);
-
-SG_main_body = SGstack('z',SG_stop,SG_main_body);
-SG_main_body = SGtransrelSG(SG_main_body,'','centerz',-2);
 
 
 [SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type','rotLock','servo',servo_name,'cable',0);
 CPL_connector = CPLaddauxpoints(CPL_connector,0.5);
-CPL_stop = CPLaddauxpoints(CPL_stop,0.5);
-SG_connection = SGof2CPLsz(CPL_connector,CPL_stop,10);
+CPL_base = CPLaddauxpoints(CPL_base,0.5);
+SG_connection = SGof2CPLsz(CPL_connector,CPL_base,10);
 SG = SGstack('z',SG_connector,SG_connection,SG_main_body);
 
+height = max(SG.VL(:,3));
+H_Object = [rotx(0) [0;0;height]; 0 0 0 1];
+SG = SGTset(SG,'O',H_Object);
 if nargout == 0
 	clf;
 	SGplot(SG);
