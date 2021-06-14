@@ -40,16 +40,16 @@ switch adapter_type
 		outer_radius_ser = max(sqrt(servo.shaft_offs^2+(servo.width/2)^2)+3,max(servo.PL_cable_gap_hor(:,1))+3);
 		connection_R = outer_radius_ser-1.5-tol;
 		CPL_connection = PLcircle(connection_R);
-		CPL_screw_holes = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);
+		CPL_screw_holes = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
 		if cable
-			CPL_cable_slot = PLkidney(servo.mount_screw_R+servo.screw_R+2,servo.mount_screw_R+servo.screw_R+2+6,1.25*pi);
+			CPL_cable_slot = PLkidney(servo.connect_screw_circle_R+servo.connect_screw_R+2,servo.connect_screw_circle_R+servo.connect_screw_R+2+6,1.25*pi);
 			CPL_connection = CPLbool('-',CPL_connection,CPL_cable_slot);
 		end
 		
 		CPL_connection = CPLbool('-',CPL_connection,CPL_screw_holes);
-		CPL_connection_mid_attach = CPLbool('-',CPL_connection,PLcircle(servo.attach_top_R+0.5));
-		SG_bottom = SGofCPLz(CPL_connection_mid_attach,servo.attach_top_H+0.5);
-		SG = SGofCPLz(CPL_connection,9-servo.attach_top_H);
+		CPL_connection_mid_attach = CPLbool('-',CPL_connection,PLcircle(servo.connect_top_R+0.5));
+		SG_bottom = SGofCPLz(CPL_connection_mid_attach,servo.connect_top_H+0.5);
+		SG = SGofCPLz(CPL_connection,9-servo.connect_top_H);
 		SG= SGstack('z',SG_bottom,SG);
 		
 		if print_help_layer
@@ -58,7 +58,7 @@ switch adapter_type
 		end
 		
 		if cable
-			CPL = [PLcircle(connection_R);NaN NaN;PLcircle(servo.mount_screw_R+servo.screw_R+2+6)];
+			CPL = [PLcircle(connection_R);NaN NaN;PLcircle(servo.connect_screw_circle_R+servo.connect_screw_R+2+6)];
 		else
 			CPL = PLcircle(connection_R);
 		end
@@ -68,19 +68,19 @@ switch adapter_type
 		SG = SGTset(SG,'B',H_b);		
 		
 	case {'x','y','xy','yx'}
-		CPL_screw_holes = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);
+		CPL_screw_holes = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
 		cable_gap_R = sqrt(servo.shaft_offs^2+(servo.width/2)^2);
 		CPL_bracket = CPLconvexhull([PLcircle(servo.width/2+5);-(servo.width/2+5) cable_gap_R+12;(servo.width/2+5) cable_gap_R+12]);
 		CPL_bracket_small = CPLconvexhull([PLcircle(servo.width/2+3);-(servo.width/2+3) cable_gap_R+12;(servo.width/2+3) cable_gap_R+12]);
 		CPL_bracket = CPLbool('-',CPL_bracket,CPL_screw_holes);
 		CPL_bracket_small = CPLbool('-',CPL_bracket_small,CPL_screw_holes);
 		
-		CPL_bracket_w_cut = CPLbool('-',CPL_bracket,PLtrans(PLroundcorners(PLsquare(servo.attach_top_R*2,servo.width+10),[1,2,3,4],servo.attach_top_R/2),[0 -10]));
+		CPL_bracket_w_cut = CPLbool('-',CPL_bracket,PLtrans(PLroundcorners(PLsquare(servo.connect_top_R*2,servo.width+10),[1,2,3,4],servo.connect_top_R/2),[0 -10]));
 		
-		SG_bracket_w_cut = SGofCPLz(CPL_bracket_w_cut,servo.attach_top_H);
+		SG_bracket_w_cut = SGofCPLz(CPL_bracket_w_cut,servo.connect_top_H);
 		SG_bracket = SGof2CPLsz(CPL_bracket,CPL_bracket_small,2);
-		missing_screw_length = screw_length -2 - servo.attach_top_H;
-		SG_screw_length = SGof2CPLsz([PLcircle(servo.mount_screw_R+2*servo.screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.mount_screw_R+2*servo.screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
+		missing_screw_length = screw_length -2 - servo.connect_top_H;
+		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
 		
 		SG = SGstack('z',SG_bracket_w_cut,SG_bracket,SG_screw_length);
 		CPL_chamfer = [0 0;5 0;0 -5];
@@ -170,7 +170,7 @@ switch adapter_type
 		legacy_adapter_H = 35;
 		legacy_inner_R = 22.5;
 		wall_thick = 2.5;
-		screw_R = servo.screw_R+0.5;
+		screw_R = servo.connect_screw_R+0.5;
 		screw_head_R = 3;
 		cable_gap = 7;
 		servo_mid_R = 7.5;
@@ -228,7 +228,7 @@ switch adapter_type
 		legacy_adapter_H = 35;
 		legacy_inner_R = 22.5;
 		wall_thick = 2.5;
-		screw_R = servo.screw_R+0.5;
+		screw_R = servo.connect_screw_R+0.5;
 		screw_head_R = 3;
 		cable_gap = 7;
 		servo_mid_R = 7.5;
@@ -289,6 +289,5 @@ end
 if cable == 0
 	CPL = CPLconvexhull(CPL);
 end
-SGwriteSTL(SG);
 
 end

@@ -37,11 +37,11 @@ gripper_attach_R = main_R+20;
 gripper_attach_H = (main_H+7) + 40;
 
 servo = readServoFromTable(servo_name);
-CPL_screw_pattern = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);
-CPL_screwhead_pattern = CPLcopyradial(PLcircle(servo.screw_R*2),servo.mount_screw_R,servo.mount_screw_Num);
+CPL_screw_pattern = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
+CPL_screwhead_pattern = CPLcopyradial(PLcircle(servo.connect_screw_R*2),servo.connect_screw_circle_R,servo.connect_screw_Num);
 
 
-mid_slot = 2*(servo.mount_screw_R+servo.screw_R);
+mid_slot = 2*(servo.connect_screw_circle_R+servo.connect_screw_R);
 
 %% MAINBODY
 

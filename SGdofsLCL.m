@@ -3,7 +3,7 @@ function [SG, CPL] = SGdofsLCL(varargin)
 tol = 0.5;
 servo_name = 'sm40bl';
 thread_length = 12;
-dof = 'x';
+dof = 'y';
 
 attach_dof = '';
 attach_servo = 'sm40bl';
@@ -70,7 +70,7 @@ switch dof
 		CPL_in_ledge = CPLbool('-',CPL_in_ledge,[-5000 min_cable_gap;5000 min_cable_gap;5000 -5000;-5000 -5000]);
 		
 		CPL_in_ledge = PLroundcorners(CPL_in_ledge,[1,2,3,6,7,8],servo.cable_gap/4);
-		CPL_in_ledge = CPLbool('+',CPL_in_ledge,PLcircle(servo.attach_top_R));
+		CPL_in_ledge = CPLbool('+',CPL_in_ledge,PLcircle(servo.connect_top_R));
 		CPL_in_ledge = CPLbool('+',CPL_in_ledge,CPL_cable_opening_lid);
 		CPL_in_ledge_wo_screws = CPL_in_ledge;
 		
@@ -79,15 +79,15 @@ switch dof
 		if(~isnan(servo.screw_mount_y))
 			screw_hor_distance = max(servo.screw_mount_y(2,:))*2;  % TODO: Make it better
 			screw_ver_distance = max(servo.screw_mount_y(1,:))*2;
-			CPL_screw_cuts = CPLbool('-',PLsquare(screw_hor_distance+2*(servo.attach_screw_R*2),servo.length*2),PLsquare(screw_hor_distance-2*(servo.attach_screw_R*2),servo.length*2));
+			CPL_screw_cuts = CPLbool('-',PLsquare(screw_hor_distance+2*(servo.mounting_screw_R*2),servo.length*2),PLsquare(screw_hor_distance-2*(servo.mounting_screw_R*2),servo.length*2));
 			CPLout_w_screw_gaps = CPLbool('-',CPL_bottom,CPL_screw_cuts);
 			SG_bottom = SGofCPLz(CPLout_w_screw_gaps,servo.height);
-			CPL_screw_inserts_screw =  CPLbool('-',PLsquare(screw_hor_distance+2*(servo.attach_screw_R*2),servo.height),PLsquare(screw_hor_distance-2*(servo.attach_screw_R*2),servo.height));
-			CPL_screw_inserts_screw =  CPLbool('-',CPL_screw_inserts_screw,PLtrans(PLcircle(servo.attach_screw_R),[screw_hor_distance/2 screw_ver_distance/2]));
-			CPL_screw_inserts_screw =  CPLbool('-',CPL_screw_inserts_screw,PLtrans(PLcircle(servo.attach_screw_R),[-screw_hor_distance/2 screw_ver_distance/2]));
-			CPL_screw_inserts_screw_head =  CPLbool('-',PLsquare(screw_hor_distance+2*(servo.attach_screw_R*2),servo.height),PLsquare(screw_hor_distance-2*(servo.attach_screw_R*2),servo.height));
-			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.attach_screw_R*2)),[screw_hor_distance/2 screw_ver_distance/2]));
-			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.attach_screw_R*2)),[-screw_hor_distance/2 screw_ver_distance/2]));
+			CPL_screw_inserts_screw =  CPLbool('-',PLsquare(screw_hor_distance+2*(servo.mounting_screw_R*2),servo.height),PLsquare(screw_hor_distance-2*(servo.mounting_screw_R*2),servo.height));
+			CPL_screw_inserts_screw =  CPLbool('-',CPL_screw_inserts_screw,PLtrans(PLcircle(servo.mounting_screw_R),[screw_hor_distance/2 screw_ver_distance/2]));
+			CPL_screw_inserts_screw =  CPLbool('-',CPL_screw_inserts_screw,PLtrans(PLcircle(servo.mounting_screw_R),[-screw_hor_distance/2 screw_ver_distance/2]));
+			CPL_screw_inserts_screw_head =  CPLbool('-',PLsquare(screw_hor_distance+2*(servo.mounting_screw_R*2),servo.height),PLsquare(screw_hor_distance-2*(servo.mounting_screw_R*2),servo.height));
+			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.mounting_screw_R*2)),[screw_hor_distance/2 screw_ver_distance/2]));
+			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.mounting_screw_R*2)),[-screw_hor_distance/2 screw_ver_distance/2]));
 			
 			SG_screw_insert_screw = SGofCPLz(CPL_screw_inserts_screw,thread_length-4-3);
 			SG_screw_inserts_screw_head = SGofCPLz(CPL_screw_inserts_screw_head,0.01);
@@ -99,8 +99,8 @@ switch dof
 			SG_screw_inserts_2 = SGfittoOutsideCPL(SG_screw_inserts_2,CPLaddauxpoints(CPL_out,0.5),'y+');
 			SG_bottom  = SGcat(SG_screw_inserts_1,SG_screw_inserts_2,SG_bottom);
 		elseif(~isnan(servo.screw_mount_z))
-			CPL_screw_holes = CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z);
-			CPL_screw_holes_addons = CPLatPL(PLcircle(servo.screw_R+2),servo.screw_mount_z);
+			CPL_screw_holes = CPLatPL(PLcircle(servo.connect_screw_R),servo.screw_mount_z);
+			CPL_screw_holes_addons = CPLatPL(PLcircle(servo.connect_screw_R+2),servo.screw_mount_z);
 			CPL_in_ledge = CPLbool('-',CPL_in_ledge,PLtrans(CPL_screw_holes_addons,[0 -servo.shaft_offs]));
 			CPL_in_ledge = CPLbool('+',CPL_in_ledge,PLtrans(CPL_screw_holes,[0 -servo.shaft_offs]));
 			SG_bottom = SGofCPLz(CPL_bottom,servo.height);
@@ -119,7 +119,7 @@ switch dof
 		CPL_lid_bottom = [CPL_lid_outline;NaN NaN;PLroundcorners(PLsquare((connection_R+.5)*2-1,servo.connect_R*2),[1,2,3,4],servo.connect_R)];
 		
 		if(~isnan(servo.screw_mount_z))
-			CPL_screw_holes = PLtrans(CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z),[0 -servo.shaft_offs]);
+			CPL_screw_holes = PLtrans(CPLatPL(PLcircle(servo.connect_screw_R),servo.screw_mount_z),[0 -servo.shaft_offs]);
 			CPL_lid_top = CPLbool('-',CPL_lid_top,CPL_screw_holes);
 			CPL_lid_top_chamfer= CPLbool('-',CPL_lid_top_chamfer,CPL_screw_holes);
 			CPL_lid_bottom= CPLbool('-',CPL_lid_bottom,CPL_screw_holes);
@@ -144,7 +144,7 @@ switch dof
 		CPL_slide_in_attachments_small = PLtrans(CPL_slide_in_attachments_small,[0 1]);
 		
 		if(~isnan(servo.screw_mount_y))
-			CPL_screw_holes = PLtrans(CPLatPL(PLcircle(servo.attach_screw_R),servo.screw_mount_y),[0 -2.5]);
+			CPL_screw_holes = PLtrans(CPLatPL(PLcircle(servo.mounting_screw_R),servo.screw_mount_y),[0 -2.5]);
 			CPL_slide_in_attachments = CPLbool('-',CPL_slide_in_attachments,CPL_screw_holes);
 			CPL_slide_in_attachments_small = CPLbool('-',CPL_slide_in_attachments_small,CPL_screw_holes);
 		end
@@ -224,12 +224,12 @@ switch dof
 			t_max = max(servo.PL_cable_gap_ver(:,2));
 			avail_screw_mounts = (servo.screw_mount_x(:,1) > t_max | servo.screw_mount_x(:,1) < t_min);
 			avail_screw_mounts = servo.screw_mount_x(avail_screw_mounts,:);
-			bot = min(avail_screw_mounts(:,2))-servo.screw_R;
-			top = max(avail_screw_mounts(:,2))+servo.screw_R;
+			bot = min(avail_screw_mounts(:,2))-servo.connect_screw_R;
+			top = max(avail_screw_mounts(:,2))+servo.connect_screw_R;
 			CPL_outside_w_screw_slots = CPLbool('-',CPL_outside_w_screw_slots,PLtrans(PLsquare(outer_radius*2,top-bot),[0 -servo.shaft_offs+t_max-tol]));
 			
 		elseif(~isnan(servo.screw_mount_z))
-			CPL_screw_holes = CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z);
+			CPL_screw_holes = CPLatPL(PLcircle(servo.connect_screw_R),servo.screw_mount_z);
 			CPL_screw_holes = PLtrans(CPL_screw_holes,[0 -servo.shaft_offs]);
 			CPL_outside = CPLbool('-',CPL_outside,CPL_screw_holes);
 			CPL_outside_small = CPLbool('-',CPL_outside_small,CPL_screw_holes);
@@ -247,7 +247,7 @@ switch dof
 		
 		if(~isnan(servo.screw_mount_x))
 			
-			CPL_screw_TH = CPLatPL(PLcircle(servo.attach_screw_R),avail_screw_mounts);
+			CPL_screw_TH = CPLatPL(PLcircle(servo.mounting_screw_R),avail_screw_mounts);
 			CPL_servo_side = PLsquare(servo.height,servo.length);
 			CPL_servo_side = CPLbool('-',CPL_servo_side,CPL_screw_TH);
 			
@@ -257,7 +257,7 @@ switch dof
 			CPL_cable_slot = [servo.PL_cable_gap_ver(:,2) servo.PL_cable_gap_ver(:,1)];
 			
 			
-			CPL_screw_HH = CPLatPL(PLcircle(servo.attach_screw_R*2),avail_screw_mounts);
+			CPL_screw_HH = CPLatPL(PLcircle(servo.mounting_screw_R*2),avail_screw_mounts);
 			CPL_servo_side_HH = PLsquare(servo.height,servo.length);
 			CPL_servo_side_HH = CPLbool('-',CPL_servo_side_HH,CPL_screw_HH);
 			
@@ -272,15 +272,15 @@ switch dof
 			CPL_servo_side_left = CPLbool('-',CPL_servo_side,[right -5000;right 5000;right+5000 5000;right+5000 -5000]);
 			CPL_servo_side_HH_left = CPLbool('-',CPL_servo_side_HH,[right -5000;right 5000;right+5000 5000;right+5000 -5000]);
 			
-			SG_screw_TH = SGofCPLz(CPL_servo_side_right,thread_length-servo.attach_screw_depth);
-			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_right,outer_radius-(servo.width/2)-thread_length+servo.attach_screw_depth);
+			SG_screw_TH = SGofCPLz(CPL_servo_side_right,thread_length-servo.mounting_screw_depth);
+			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_right,outer_radius-(servo.width/2)-thread_length+servo.mounting_screw_depth);
 			SG_screw_TH = SGstack('z',SG_screw_TH,SG_screw_HH);
 			SG_screw_TH = SGtransrelSG(SG_screw_TH,SG_3,'roty',-pi/2,'aligntop','alignleft','transy',-servo.shaft_offs+tol);
 			SG_screw_TH = SGcat(SG_screw_TH,SGmirror(SG_screw_TH,'yz'));
 			SG_3 = SGcat(SG_3,SG_screw_TH);
 			
-			SG_screw_TH = SGofCPLz(CPL_servo_side_left,thread_length-servo.attach_screw_depth);
-			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_left,outer_radius-(servo.width/2)-thread_length+servo.attach_screw_depth);
+			SG_screw_TH = SGofCPLz(CPL_servo_side_left,thread_length-servo.mounting_screw_depth);
+			SG_screw_HH = SGofCPLz(CPL_servo_side_HH_left,outer_radius-(servo.width/2)-thread_length+servo.mounting_screw_depth);
 			SG_screw_TH = SGstack('z',SG_screw_TH,SG_screw_HH);
 			SG_screw_TH = SGtransrelSG(SG_screw_TH,SG_1,'roty',-pi/2,'aligntop','alignleft','transy',-servo.shaft_offs+tol);
 			SG_screw_TH = SGcat(SG_screw_TH,SGmirror(SG_screw_TH,'yz'));

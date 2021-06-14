@@ -273,9 +273,9 @@ end
 %% servorotator
 
 CPL_mid_rotator = PLcircle(servo.connect_R);
-CPL_screw_pattern = CPLcopyradial(PLcircle(servo.screw_R),servo.mount_screw_R,servo.mount_screw_Num);
+CPL_screw_pattern = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
 CPL_bottom_gap = CPLbool('-',CPL_mid_rotator,CPL_screw_pattern);
-CPL_bottom_gap = CPLbool('-',CPL_bottom_gap,PLcircle(servo.attach_top_R));
+CPL_bottom_gap = CPLbool('-',CPL_bottom_gap,PLcircle(servo.connect_top_R));
 CPL_guide_hole =  PLtrans(PLcircle(3),[0 -servo.connect_R-2-axle_R]);
 CPL_guide_hole_out =  PLtrans(PLcircle(5.5),[0 -servo.connect_R-2-axle_R]);
 CPL_mid_rotator_c = CPL_mid_rotator;
@@ -287,27 +287,27 @@ for i=1:gripper_number
 	
 end
 CPL_mid_rotator = CPLbool('-',CPL_mid_rotator,CPL_screw_pattern);
-CPL_mid_rotator = CPLbool('-',CPL_mid_rotator,PLcircle(servo.attach_top_R));
+CPL_mid_rotator = CPLbool('-',CPL_mid_rotator,PLcircle(servo.connect_top_R));
 SG_mid_rotator = SGofCPLz(CPL_mid_rotator,4);
 
 CPL_mid_rotator_w_through_holes = CPLbool('-',CPL_mid_rotator_c,CPL_screw_pattern);
-SG_mid_rotator_top = SGofCPLz(CPLbool('-',CPL_mid_rotator_w_through_holes,PLsquare(servo.attach_top_R*2,500)),5);
+SG_mid_rotator_top = SGofCPLz(CPLbool('-',CPL_mid_rotator_w_through_holes,PLsquare(servo.connect_top_R*2,500)),5);
 
-CPL_screw_head_pattern = CPLcopyradial(PLcircle(servo.screw_R*1.5),servo.mount_screw_R,servo.mount_screw_Num);
+CPL_screw_head_pattern = CPLcopyradial(PLcircle(servo.connect_screw_R*1.5),servo.connect_screw_circle_R,servo.connect_screw_Num);
 CPL_mid_rotator_screw_heads = CPLbool('-',CPL_mid_rotator_c,CPL_screw_head_pattern);
 SG_mid_rotator_bottom_gap =SGofCPLz(CPL_bottom_gap,1);
-SG_mid_rotator_top_screw_heads = SGofCPLz(CPLbool('-',CPL_mid_rotator_screw_heads,PLsquare(servo.attach_top_R*2,500)),2);
+SG_mid_rotator_top_screw_heads = SGofCPLz(CPLbool('-',CPL_mid_rotator_screw_heads,PLsquare(servo.connect_top_R*2,500)),2);
 SG_mid_rotator = SGstack('z',SG_mid_rotator_bottom_gap,SG_mid_rotator,SG_mid_rotator_top,SG_mid_rotator_top_screw_heads);
 
 %% FINGERLEVER
 
 disk_R = servo.connect_R+2*5.5+2;
 
-CPL_fl_attach_mid_bot = CPLbool('x',PLsquare((servo.attach_top_R*2)-tol,500),PLcircle(servo.connect_R+tol));
+CPL_fl_attach_mid_bot = CPLbool('x',PLsquare((servo.connect_top_R*2)-tol,500),PLcircle(servo.connect_R+tol));
 CPL_fl_attach_mid_bot = CPLbool('-',CPL_fl_attach_mid_bot,CPL_screw_pattern);
 
 
-CPL_fl_attach_cut_out = CPLbool('-',PLcircle(servo.connect_R+tol),PLsquare((servo.attach_top_R*2)-tol,500));
+CPL_fl_attach_cut_out = CPLbool('-',PLcircle(servo.connect_R+tol),PLsquare((servo.connect_top_R*2)-tol,500));
 CPL_fl_attach_mid_top = CPLbool('-',PLcircle(disk_R),CPL_fl_attach_cut_out);
 
 CPL_fl_attach_mid_top_TH = CPLbool('-',CPL_fl_attach_mid_top,CPL_screw_pattern);

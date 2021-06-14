@@ -135,10 +135,10 @@ SG_insert = SGofCPLz(CPL_insert,36.5);
 
 CPL_gear = PLgearDIN(1,round(servo.connect_R*2.5));
 CPL_gear = CPLbool('-',CPL_gear,PLcircle(servo.connect_R));
-CPL_screw_pattern_TH = CPLcopyradial(PLcircle(servo.attach_screw_R),servo.mount_screw_R,servo.mount_screw_Num);
-CPL_screw_pattern_HH = CPLcopyradial(PLcircle(servo.attach_screw_R*2),servo.mount_screw_R,servo.mount_screw_Num);
+CPL_screw_pattern_TH = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
+CPL_screw_pattern_HH = CPLcopyradial(PLcircle(servo.connect_screw_R*2),servo.connect_screw_circle_R,servo.connect_screw_Num);
 CPL_middle_TH = CPLbool('-',PLcircle(servo.connect_R),CPL_screw_pattern_TH);
-CPL_middle_TH = CPLbool('-',CPL_middle_TH,PLcircle(servo.attach_top_R));
+CPL_middle_TH = CPLbool('-',CPL_middle_TH,PLcircle(servo.connect_top_R));
 CPL_middle_HH = CPLbool('-',PLcircle(servo.connect_R),CPL_screw_pattern_HH);
 
 SG_gear = SGofCPLz(CPL_gear,10);
