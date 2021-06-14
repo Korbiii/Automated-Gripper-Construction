@@ -3,7 +3,7 @@ function [SG, CPL] = SGconnAdaptersLCL(varargin)
 tol = 0.5;
 servo_name = 'sm40bl';
 screw_length = 12-3;
-adapter_type = 'rotLock';
+adapter_type = '';
 cable = 1;
 print_help_layer = 0;
 
@@ -112,23 +112,18 @@ switch adapter_type
 				
 		CPL_main = CPLbool('-',PLcircle(outer_R+2),PLcircle(outer_R));
 		CPL_main_cut = CPLconvexhull([PLcircseg(outer_R+3,'',pi-0.2,pi+1);0 0]);
-% 		CPL_main_cut = CPLbool('+',VLswapY(VLswapX(CPL_main_cut)),CPL_main_cut);	
 		CPL_main_cut = VLswapY(VLswapX(CPL_main_cut));
 		CPL_click_mask = CPLconvexhull([PLcircseg(outer_R+3,'',pi-.1,pi+1.1);0 0]);
 		CPL_clicks = CPLbool('x',CPL_main,CPL_click_mask);
 		
 		CPL_inner_catch = PLroundcorners([outer_R+3 0;outer_R-3.5 0;outer_R+3 -10],[2,3],[1.5,6]);
 		CPL_inner_catch = CPLbool('x',CPL_inner_catch,PLcircle(outer_R+2));		
-% 		CPL_inner_catch = CPLbool('+',VLswapY(VLswapX(CPL_inner_catch)),CPL_inner_catch);
-% 		CPL_clicks=CPLbool('+',VLswapY(VLswapX(CPL_clicks)),CPL_clicks);
 		CPL_clicks = VLswapY(VLswapX(CPL_clicks));
 		CPL_clicks =CPLbool('+',CPL_clicks,CPL_inner_catch);
 		
 		CPL_thumb_button = PLroundcorners([outer_R 0;outer_R+10 0;outer_R+10 6;+outer_R-10 10],[2,3],2);	
 		CPL_thumb_button = PLtransR(CPL_thumb_button,rot(-0.1));
-		CPL_thumb_button = CPLbool('-',CPL_thumb_button,PLcircle(outer_R));				
-% 		CPL_thumb_button=CPLbool('+',VLswapY(VLswapX(CPL_thumb_button)),CPL_thumb_button);	
-			
+		CPL_thumb_button = CPLbool('-',CPL_thumb_button,PLcircle(outer_R));							
 		CPL_clicks =CPLbool('+',CPL_clicks,CPL_thumb_button);
 		
 		
@@ -167,6 +162,127 @@ switch adapter_type
 		else
 			CPL =  PLcircle(outer_R+2);
 		end
+	case {'xr','yr'}  %%TODOOOOO
+		inner_run_R = 29.7;
+		outer_run_R = 37.7;
+		outer_run_H = 17;
+		inn_run_H = 6;
+		legacy_adapter_H = 35;
+		legacy_inner_R = 22.5;
+		wall_thick = 2.5;
+		screw_R = servo.screw_R+0.5;
+		screw_head_R = 3;
+		cable_gap = 7;
+		servo_mid_R = 7.5;
+		servo_attach_R = 19;
+		outer_R = outer_run_R+wall_thick;
+		inner_R = conn_screw_circle_radius + screw_head_R + cable_gap + wall_thick;
+		
+		CPL_bottom_connection = PLsquare(outer_R-legacy_inner_R,legacy_adapter_H);
+		CPL_bottom_connection = PLtrans(CPL_bottom_connection,[(legacy_inner_R+outer_R)/2 legacy_adapter_H/2]);
+		
+		CPL_run_cut = [legacy_inner_R 0;legacy_inner_R inn_run_H;inner_run_R inn_run_H;inner_run_R outer_run_H;outer_run_R outer_run_H;outer_run_R 0];
+		
+		CPL_bottom_connection = CPLbool('-',CPL_bottom_connection,CPL_run_cut);		
+		
+		CPL_bottom_connection = PLroundcorners(CPL_bottom_connection,[3,4,5,8],[2 2 2 5]);
+		CPL_bottom_connection_cable_gap = CPLbool('-',CPL_bottom_connection,PLtrans(PLsquare(2*outer_R,cable_gap),[0 legacy_adapter_H-10]));		
+		
+		SG_bottom_conn = SGofCPLrota(CPL_bottom_connection,1.75*pi,false,1.125*pi);
+		SG_bottom_conn_cable_gap = SGofCPLrota(CPL_bottom_connection_cable_gap,0.25*pi,false,-1.125*pi);
+		SG_bottom_conn = SGcat(SG_bottom_conn,SG_bottom_conn_cable_gap);
+		
+		CPL_cable_slot = PLkidney(inner_R+0.5,inner_R-cable_gap,pi/1.5);
+		CPL_screw_holes = CPLcopyradial(PLcircle(screw_R),conn_screw_circle_radius,8);
+		PLlayer1 = [PLcircle(servo_attach_R);NaN NaN;PLcircle(servo_mid_R)];
+		PLlayer1 = CPLbool('-',PLlayer1,CPL_cable_slot);
+		PLlayer1 = CPLbool('-',PLlayer1,CPL_screw_holes);
+		SGlayer1 = SGofCPLz(PLlayer1,6.325);
+		
+		CPL_screw_holes_heads = CPLcopyradial(PLcircle(screw_head_R),conn_screw_circle_radius,8);
+		PLlayer3 = PLcircle(inner_R);
+		PLlayer3 = CPLbool('-',PLlayer3,CPL_cable_slot);
+		PLlayer3 = CPLbool('-',PLlayer3,CPL_screw_holes_heads);
+		SGlayer3 = SGofCPLz(PLlayer3,13);
+		
+		SG_mid = SGstack('z',SGlayer1,SGlayer3);
+		SG_bottom_conn = SGcat(SG_bottom_conn,SGtransrelSG(SG_mid,SG_bottom_conn,'alignbottom'));
+		SG = SGtransrelSG(SG_bottom_conn,'','transz',-legacy_adapter_H/2+2);			
+		
+		CPL = PLroundcorners(PLsquare(1.25*outer_R,legacy_adapter_H-10),[1,2,3,4],5);
+		CPL = [CPL;NaN NaN;CPLbuffer(CPL,-2.5)];
+		CPL = CPLaddauxpoints(CPL,.5);
+		
+		SG_connection = SGofCPLz(CPL,0.1);
+		SG_connection = SGtransrelSG(SG_connection,SG,'rotx',pi/2,'rotz',pi/2,'left',1,'centerz');
+		CPL_circ_fit = PLcircseg(outer_R,1000,pi/2,3*pi/2);
+		SG_connection = SGfittoOutsideCPL(SG_connection,CPL_circ_fit,'x+');
+		SG = SGcat(SG,SG_connection);
+		SG = SGtransrelSG(SG,'','roty',pi/2,'centerx','rotz',pi/2);
+		
+	case 'legacy'
+		inner_run_R = 29.7;
+		outer_run_R = 37.7;
+		outer_run_H = 17;
+		inn_run_H = 6;
+		legacy_adapter_H = 35;
+		legacy_inner_R = 22.5;
+		wall_thick = 2.5;
+		screw_R = servo.screw_R+0.5;
+		screw_head_R = 3;
+		cable_gap = 7;
+		servo_mid_R = 7.5;
+		servo_attach_R = 19;		
+		conn_screw_circle_radius = 10.5;
+		outer_R = outer_run_R+wall_thick;
+		inner_R = conn_screw_circle_radius + screw_head_R + cable_gap + wall_thick;
+		
+		CPL_bottom_connection = PLsquare(outer_R-legacy_inner_R,legacy_adapter_H);
+		CPL_bottom_connection = PLtrans(CPL_bottom_connection,[(legacy_inner_R+outer_R)/2 legacy_adapter_H/2]);
+		
+		CPL_run_cut = [legacy_inner_R 0;legacy_inner_R inn_run_H;inner_run_R inn_run_H;inner_run_R outer_run_H;outer_run_R outer_run_H;outer_run_R 0];
+		
+		CPL_bottom_connection = CPLbool('-',CPL_bottom_connection,CPL_run_cut);		
+		
+		CPL_bottom_connection = PLroundcorners(CPL_bottom_connection,[3,4,5,8],[2 2 2 5]);
+		CPL_bottom_connection_cable_gap = CPLbool('-',CPL_bottom_connection,PLtrans(PLsquare(2*outer_R,cable_gap),[0 legacy_adapter_H-10]));		
+		
+		SG_bottom_conn = SGofCPLrota(CPL_bottom_connection,1.75*pi,false,1.125*pi);
+		SG_bottom_conn_cable_gap = SGofCPLrota(CPL_bottom_connection_cable_gap,0.25*pi,false,-1.125*pi);
+		SG_bottom_conn = SGcat(SG_bottom_conn,SG_bottom_conn_cable_gap);
+		
+		CPL_cable_slot = PLkidney(inner_R+0.5,inner_R-cable_gap,pi/1.5);
+		CPL_screw_holes = CPLcopyradial(PLcircle(screw_R),conn_screw_circle_radius,8);
+		PLlayer1 = [PLcircle(servo_attach_R);NaN NaN;PLcircle(servo_mid_R)];
+		PLlayer1 = CPLbool('-',PLlayer1,CPL_cable_slot);
+		PLlayer1 = CPLbool('-',PLlayer1,CPL_screw_holes);
+		SGlayer1 = SGofCPLz(PLlayer1,6.325);
+		
+		CPL_screw_holes_heads = CPLcopyradial(PLcircle(screw_head_R),conn_screw_circle_radius,8);
+		PLlayer3 = PLcircle(inner_R);
+		PLlayer3 = CPLbool('-',PLlayer3,CPL_cable_slot);
+		PLlayer3 = CPLbool('-',PLlayer3,CPL_screw_holes_heads);
+		SGlayer3 = SGofCPLz(PLlayer3,13);
+		
+		SG_mid = SGstack('z',SGlayer1,SGlayer3);
+		SG_bottom_conn = SGcat(SG_bottom_conn,SGtransrelSG(SG_mid,SG_bottom_conn,'alignbottom'));
+		SG = SGtransrelSG(SG_bottom_conn,'','transz',-legacy_adapter_H/2+2);	
+		
+		CPL = PLroundcorners(PLsquare(1.25*outer_R,legacy_adapter_H-10),[1,2,3,4],5);
+		CPL = [CPL;NaN NaN;CPLbuffer(CPL,-2.5)];
+		CPL = CPLaddauxpoints(CPL,.5);
+		
+		SG_connection = SGofCPLz(CPL,0.1);
+		SG_connection = SGtransrelSG(SG_connection,SG,'rotx',pi/2,'rotz',pi/2,'left',1,'centerz');
+		CPL_circ_fit = PLcircseg(outer_R,1000,pi/2,3*pi/2);
+		SG_connection = SGfittoOutsideCPL(SG_connection,CPL_circ_fit,'x+');
+		SG = SGcat(SG,SG_connection);
+		min_z_bott_con = min(SG.VL(:,3));
+		H_b = [rotx(0) [0;0;min_z_bott_con]; 0 0 0 1];
+		SG = SGTset(SG,'B',H_b);
+		SG = SGtransrelSG(SG,'','roty',pi/2,'centerx','rotz',pi/2);
+		
+		
 	otherwise
 		disp('Connection Type doesnt exist');
 end

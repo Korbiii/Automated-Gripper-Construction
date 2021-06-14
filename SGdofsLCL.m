@@ -5,7 +5,7 @@ servo_name = 'sm40bl';
 thread_length = 12;
 dof = 'x';
 
-attach_dof = 'z';
+attach_dof = '';
 attach_servo = 'sm40bl';
 
 print_help_layer = 0;
@@ -89,14 +89,14 @@ switch dof
 			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.attach_screw_R*2)),[screw_hor_distance/2 screw_ver_distance/2]));
 			CPL_screw_inserts_screw_head =  CPLbool('-',CPL_screw_inserts_screw_head,PLtrans(PLcircle((servo.attach_screw_R*2)),[-screw_hor_distance/2 screw_ver_distance/2]));
 			
-			SG_screw_insert_screw = SGofCPLz(CPL_screw_inserts_screw,thread_length-4);
+			SG_screw_insert_screw = SGofCPLz(CPL_screw_inserts_screw,thread_length-4-3);
 			SG_screw_inserts_screw_head = SGofCPLz(CPL_screw_inserts_screw_head,0.01);
 			
 			SG_screw_inserts = SGstack('z',SG_screw_insert_screw,SG_screw_inserts_screw_head);
 			SG_screw_inserts_1 = SGtransrelSG(SG_screw_inserts,SG_bottom,'rotx',pi/2,'aligntop','transy',servo.shaft_offs+0.5*tol-servo.length-4);
 			SG_screw_inserts_2 = SGtransrelSG(SG_screw_inserts,SG_bottom,'rotx',pi/2,'rotz',pi,'aligntop','transy',servo.shaft_offs+0.5*tol+4);
-			SG_screw_inserts_1 = SGfittoOutsideCPL(SG_screw_inserts_1,CPL_out,'y-');
-			SG_screw_inserts_2 = SGfittoOutsideCPL(SG_screw_inserts_2,CPL_out,'y+');
+			SG_screw_inserts_1 = SGfittoOutsideCPL(SG_screw_inserts_1,CPLaddauxpoints(CPL_out,0.5),'y-');
+			SG_screw_inserts_2 = SGfittoOutsideCPL(SG_screw_inserts_2,CPLaddauxpoints(CPL_out,0.5),'y+');
 			SG_bottom  = SGcat(SG_screw_inserts_1,SG_screw_inserts_2,SG_bottom);
 		elseif(~isnan(servo.screw_mount_z))
 			CPL_screw_holes = CPLatPL(PLcircle(servo.screw_R),servo.screw_mount_z);

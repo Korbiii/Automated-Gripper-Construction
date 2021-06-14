@@ -7,26 +7,6 @@
 %
 function [SG] = LCLrobot(varargin)
  clf;
-% arm_length = 150;
-% dof_array = ['z','x'];
-% servo_array = {'sm40bl','sm40bl','sm40bl'};
-% gripper_type = 1;
-% gripper_servo = 'sm40bl';
-% 
-% for f=1:size(varargin,2)
-% if ~ischar(varargin{f}), continue; end
-%       switch varargin{f}
-%           case 'arm_length'
-%               arm_length = varargin{f+1};     
-%           case 'driven_gripper'
-%               gripper_type = 1;
-%           case 'mechanical_gripper'
-%               gripper_type = 2;
-%           case 'gripper_servo'
-%               gripper_servo = varargin{f+1};
-%       end   
-% end
-
 
 load('STL/Base.mat');
 load('STL/Shoulder.mat');
