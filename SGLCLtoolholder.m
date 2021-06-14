@@ -1,6 +1,22 @@
-function [SG_base,SG_main_body,SG_complete] = SGLCLtoolholder(varargin)
+function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder(varargin)
 servo_name = 'sm40bl';
 width_holder = 50;
+
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
+inputsGripper = {'width',50,2,43,45;'height',50,3,119,115};
+
+if ~isempty(varargin)
+	if strcmp(varargin{1},'c_inputs')
+		temp = varargin{2};
+		varargin(1) = [];
+		varargin(1) = [];
+		for k=1:size(temp,1)
+			varargin{end+1} = temp{k,1};
+			varargin{end+1} = temp{k,2};
+		end
+	end
+end
+
 i_idx = 1;
 SG_object = {};
 while i_idx<=size(varargin,2)

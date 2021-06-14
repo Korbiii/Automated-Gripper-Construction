@@ -85,34 +85,16 @@ H_Object = [rotx(0) [0;0;0]; 0 0 0 1];
 SG_object = SGTset(SG_object,'Object',H_Object);
 
 inputStr = '';
-while ~ismember(inputStr, {'Tool','Com','Mech','Para'})
-	inputStr = input('Choose the gripper type! Tool/Com/Mech/Para ','s');
+[~,~,~,~,~,gripper_options] = SGendeffectors('');
+while ~ismember(inputStr, gripper_options)
+	disp('Gripper options are: ');
+	disp(string(gripper_options));
+	inputStr = input('Choose the gripper type!' ,'s');
 end
 
-switch inputStr
-	case 'Tool'
- 		size_th = 50;
-		[SG_gripper_sil,SG_grippers] = SGLCLtoolholder('width',size_th);
-		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
-		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});		
-	case 'Com'
-		SG_gripper_sil = SGcompConfig(SG_object);
-	case 'Mech'
-		length_gripper = 50;
-		[SG_gripper_sil,SG_grippers] = SGmechGripper('grip_H',length_gripper);		
-		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
-		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-	case 'Para'
-		jaw_thickness = 10;
-		opening = 50;
-		[SG_gripper_sil,SG_grippers] = SGparrallelGripper('jaw_th',jaw_thickness,'opening',opening);
-		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
-		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-	otherwise 
-		error('SOMETHING WENT HOOOOORRRRIIIIBLLLE WRONG');		
-end
-
-
+[SG_gripper_sil,SG_grippers,~,inputsO,inputsG] = SGendeffectors(inputStr);
+SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
+SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
 
 clf;
 gripper = SGplot(SG_grippers);
@@ -126,77 +108,33 @@ object = SGplot(SG_object);
 object.Tag = 'object';
 view(90,0);
 
+
 while true
 	[~,~,in]=ginput(1);
-	switch in
-		case 31
-			SG_object = SGtrans(SG_object,[0 0 -1]);
-		case 30
-			SG_object = SGtrans(SG_object,[0 0 +1]);
-		case 28
-			switch inputStr
-				case 'Para'
-					opening=opening-2;
-					[~,SG_grippers] = SGparrallelGripper('jaw_th',jaw_thickness,'opening',opening);
-					SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-				otherwise					
-				     SG_object = SGtrans(SG_object,[0 -1 0]);
-			end		
-		case 29
-			switch inputStr
-				case 'Para'
-					opening=opening+2;
-					[~,SG_grippers] = SGparrallelGripper('jaw_th',jaw_thickness,'opening',opening);
-					SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-				otherwise
-					SG_object = SGtrans(SG_object,[0 1 0]);
-			end	
-		case 119 %w
-			SG_object = SGtransrelSG(SG_object,SG_object,'roty',-pi/2);
-		case 115 %s%
-			SG_object = SGtransrelSG(SG_object,SG_object,'roty',pi/2);
-		case 100 %d			
-			SG_object = SGtransrelSG(SG_object,SG_object,'rotx',-pi/2);
-		case 97 %a			
-			SG_object = SGtransrelSG(SG_object,SG_object,'rotx',pi/2);
-		case 113 %q			
-			SG_object = SGtransrelSG(SG_object,SG_object,'rotx',0.1);
-		case 101 %e
-			SG_object = SGtransrelSG(SG_object,SG_object,'rotx',-0.1);
-		case 43 %+
-			switch inputStr
-				case 'Tool'					
-					size_th=size_th+2;
-					[~,SG_grippers] = SGLCLtoolholder('width',size_th);
-				case 'Mech'
-					length_gripper = length_gripper+2;
-					[~,SG_grippers] = SGmechGripper('grip_H',length_gripper);
-					SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});					
-				case 'Para'
-					jaw_thickness = jaw_thickness+2;
-					[~,SG_grippers] = SGparrallelGripper('jaw_th',jaw_thickness,'opening',opening);
-					SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-			end
-		case 45 %-
-			switch inputStr
-				case 'Tool'
-					size_th=size_th-2;
-					[~,SG_grippers] = SGLCLtoolholder('width',size_th);
-				case 'Mech'
-					length_gripper = length_gripper-2;
-					[~,SG_grippers] = SGmechGripper('grip_H',length_gripper);					
-					SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-				case 'Para'
-					jaw_thickness = jaw_thickness-2;
-					[~,SG_grippers] = SGparrallelGripper('jaw_th',jaw_thickness,'opening',opening);	
-					SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-			end
-		case 120 % x
-				SG_object = SGTset(SG_object,'ObjectPos',SGTget(SG_grippers,'ObjectPos'));
-			break;
-		otherwise
+	if in == 120
+		SG_object = SGTset(SG_object,'ObjectPos',SGTget(SG_grippers,'ObjectPos'));
+		break;
 	end
-
+	
+	for k=1:size(inputsO,1)
+		if in == inputsO{k,3}
+			 SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},inputsO{k,2});
+		elseif in == inputsO{k,4} 
+			 SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},-inputsO{k,2});
+		end			
+	end
+	
+	for k=1:size(inputsG,1)
+		if in == inputsG{k,4}
+			 inputsG{k,2}=inputsG{k,2}+inputsG{k,3};
+			 [SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG);
+		elseif in == inputsG{k,5} 			
+			 inputsG{k,2}=inputsG{k,2}-inputsG{k,3};
+			 [SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG);
+		end			
+		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
+		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
+	end
 	
 	patch = findall(gcf, 'Tag', 'gripper');
 	delete(patch);
@@ -214,19 +152,10 @@ while true
 	object.Tag = 'object';	
 	
 	view(90,0);
+	
 end
 
-switch inputStr
-	case 'Tool'
-		[~,~,SG_final] = SGLCLtoolholder('width',size_th,'SG_object',SG_object);
-	case 'Com'
-	case 'Mech'
-		[~,~,SG_final] = SGmechGripper('SG_object',SG_object,'grip_H',length_gripper);
-	case 'Para'
-		[~,~,SG_final] = SGparrallelGripper('SG_object',SG_object,'jaw_th',jaw_thickness,'opening',opening);
-	otherwise 
-		error('SOMETHING WENT HOOOOORRRRIIIIBLLLE WRONG');		
-end
+[~,~,SG_final] = SGendeffectors(inputStr,inputsG,SG_object);
 clf;
 SGplot(SG_final);
 SGwriteSTL(SG_final);

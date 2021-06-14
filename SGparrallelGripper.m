@@ -1,4 +1,4 @@
-function [SG_gripper_body,SG_gripper_attachment,SG_final] = SGparrallelGripper(varargin)
+function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGparrallelGripper(varargin)
 clf;
 tol=0.5;
 thread_length = 12;
@@ -8,6 +8,23 @@ conn_type  = 'rotLock';
 
 jaw_th = 5;
 opening = 20;
+
+inputsObject = {'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
+inputsGripper = {'jaw_th',5,1,43,45;'opening' 20 2 29 28};
+
+if ~isempty(varargin)
+	if strcmp(varargin{1},'c_inputs')
+		temp = varargin{2};
+		varargin(1) = [];
+		varargin(1) = [];
+		for k=1:size(temp,1)
+			varargin{end+1} = temp{k,1};
+			varargin{end+1} = temp{k,2};
+		end
+	end
+end
+
+
 SG_object = [];
 i_idx = 1;
 while i_idx<=size(varargin,2)
@@ -238,7 +255,7 @@ SG_gripper_attachment.alpha = 0.45;
 SG_gripper_body = SGcatF(SG_main_body,SGontop(SG_grippers_mir,SG_main_body,-10));
 SG_final = SGcat(SG_gripper_body,SG_gripper_attachment);
 % SGplot(SG_final);
-SGwriteSTL(SG_grippers);
-SGplot(SG_main_body);
+% SGwriteSTL(SG_grippers);
+% SGplot(SG_main_body);
 
 end
