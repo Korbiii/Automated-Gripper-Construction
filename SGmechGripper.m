@@ -30,7 +30,13 @@ while i_idx<=size(varargin,2)
 		case 'grip_H'
 			gripper_height = max(gripper_height,varargin{i_idx+1});
 		case 'output'
-			output =1;
+			output =1;			
+		case 'conn_servo'
+			servo_name = varargin{i_idx+1};		
+			i_idx = i_idx+1;	
+		case 'conn_type'
+			conn_type = varargin{i_idx+1};		
+			i_idx = i_idx+1;	
 	end
 	i_idx = i_idx+1;
 end

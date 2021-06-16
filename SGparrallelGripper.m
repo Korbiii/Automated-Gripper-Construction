@@ -38,7 +38,15 @@ while i_idx<=size(varargin,2)
 		case 'jaw_th'
 			jaw_th = max(jaw_th,varargin{i_idx+1});
 		case 'opening'
-			opening = varargin{i_idx+1};
+			opening = varargin{i_idx+1};	
+		case 'conn_type'
+			SG_object = varargin{i_idx+1};			
+			i_idx = i_idx+1;	
+		case 'conn_servo'
+			SG_object = varargin{i_idx+1};			
+			i_idx = i_idx+1;	
+		case 'output'
+			output = 1;
 	end
 	i_idx = i_idx+1;
 end
