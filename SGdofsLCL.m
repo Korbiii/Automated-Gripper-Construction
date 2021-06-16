@@ -3,9 +3,9 @@ function [SG, CPL] = SGdofsLCL(varargin)
 tol = 0.5;
 servo_name = 'sm40bl';
 thread_length = 12;
-dof = 'y';
+dof = 'x';
 
-attach_dof = '';
+attach_dof = 'z';
 attach_servo = 'sm40bl';
 
 print_help_layer = 0;
@@ -182,7 +182,7 @@ switch dof
 			CPL_coonector = CPLaddauxpoints(CPL_connector,0.5);
 			CPL = CPLaddauxpoints(CPL,0.5);
 			SG_connection = SGof2CPLsz(CPL_coonector,CPL,10);
-			SG = SGstack2('z',SG_connector,SG_connection,SG);
+			SG = SGstack('z',SG_connector,SG_connection,SG);
 		end
 		H_f = [roty(180) [0;0;max(SG.VL(:,3))]; 0 0 0 1];
 		SG = SGTset(SG,'F',H_f);
@@ -300,14 +300,12 @@ switch dof
 		if attach_dof ~= 0
 			[SG_connector,CPL_connector] = SGconnAdaptersLCL('servo',attach_servo,'adapter_type',attach_dof);
 			SG_connection = SGof2CPLsz(CPL_connector,CPL,10,'center');
-			SG = SGstack2('z',SG_connector,SG_connection,SG);
+			SG = SGstack('z',SG_connector,SG_connection,SG);
 		end
 		
 		SG = SGtransrelSG(SG,'','alignbottom');
 		
 end
-
-
 
 if nargout == 0
 	clf;

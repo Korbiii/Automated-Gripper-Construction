@@ -8,6 +8,7 @@ for i=2:nargin
 			Ts{end+1}=SGTget(varargin{i},Tname{j});
 		end			
 	end	
+	
 	SG = SGcat(SG,varargin{i});
 	
 	if(isfield(varargin{i},'Tname'))

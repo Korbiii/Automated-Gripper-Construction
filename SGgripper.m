@@ -8,8 +8,12 @@
 %    conn_servo_name :
 %    === OUTPUT RESULTS ======
 %    SGs :
-function [SG] = SGgripper(varargin)
-clf;
+function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGgripper(varargin)
+
+
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
+inputsGripper = {'gripper_numbers',2,1,43,45;'Radius',47,1,60,62};
+
 %%Default configuration
 
 servo_name = 'sm40bl';
@@ -27,6 +31,18 @@ conn_type  = 'rotLock';
 
 %% Default variables
 output = 1;
+
+if ~isempty(varargin)
+	if strcmp(varargin{1},'c_inputs')
+		temp = varargin{2};
+		varargin(1) = [];
+		varargin(1) = [];
+		for k=1:size(temp,1)
+			varargin{end+1} = temp{k,1};
+			varargin{end+1} = temp{k,2};
+		end
+	end
+end
 
 %%Inputs
 i_idx = 1;
@@ -65,7 +81,7 @@ while i_idx<=size(varargin,2)
 			finger_tip_length = varargin{i_idx+1};
 		case 'attach_width'
 			attach_width = varargin{i_idx+1};
-		case 'outputSTL'
+		case 'output'
 			output = 1;
 		otherwise
 			error(varargin{i_idx} + " isn't a valid flag!");
@@ -340,6 +356,15 @@ SG_fl_lever = SGtransR(SG_fl_lever,rot(0,0,pi));
 SG_fl_lever = SGcircularpattern(SG_fl_lever,gripper_number,(2*pi)/gripper_number);
 SG_fl_lever = SGtransrelSG(SG_fl_lever,SG_fl_mid,'aligntop');
 SG_fl_mid = SGcat(SG_fl_lever,SG_fl_mid);
+
+height = max(SG_fl_mid.VL(:,3));
+H_Gripper_pos = [rotz(90) [0;0;height]; 0 0 0 1];
+SG_fl_mid = SGTset(SG_fl_mid,'GripperT',H_Gripper_pos);
+
+height = max(SG_fl_mid.VL(:,3));
+T_object_pos = [rotz(90) [0;0;height+20]; 0 0 0 1];
+SG_fl_mid = SGTset(SG_fl_mid,'ObjectPos',T_object_pos);
+
 %% Connecting rod
 rod_length = max_grip_R-10-servo.connect_R-5.5 +5;
 rod_R = rod_length/1.5;
@@ -561,6 +586,7 @@ SG_bb_top = SGTset(SG_bb_top,'B',H_b);
 
 H_f = [rotz(0) [0;-bb_top_length/2;2]; 0 0 0 1];
 SG_bb_top = SGTset(SG_bb_top,'F',H_f);
+
 %% STLWRITE
 if output == 1
     SGwriteSTL(SG);
@@ -632,10 +658,14 @@ SGc2 = SGcat(SGc2);
 SG_mid_rotator = SGtransrelSG(SG_mid_rotator,SG_lid,'ontop',-4);
 SG_fl_mid = SGtransrelSG(SG_fl_mid,SG_mid_rotator,'aligntop',3);
 
-SG = SGcat(SGc,SGc2,SG_mid_rotator,SG_fl_mid);
+SG = SGcatF(SGc,SGc2,SG_mid_rotator,SG_fl_mid);
 if nargout== 0
-    SGplot(SG);
+    SGTplot(SG);
 end
+SG_final = SG;
+SG_gripper_attachment= SG;
+SG_gripper_attachment.alpha = 0;
+
 
 
 end

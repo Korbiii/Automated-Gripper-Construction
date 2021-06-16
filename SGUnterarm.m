@@ -59,17 +59,17 @@ CPL = CPLaddauxpoints(CPL,0.5);
 SG_connection = SGof2CPLsz(CPL_crossS_3,CPL,10,'center','miny');
 
 
-SG_servo_attachment = SGstack2('z',SG_connection,SG_bottom);
+SG_servo_attachment = SGstack('z',SG_connection,SG_bottom);
 
-SG = SGstack2('z',SG_connection_bottom,SG_connection_bottom2arm,SG_bottom_half,SG_top_half,SG_servo_attachment);
+SG = SGstack('z',SG_connection_bottom,SG_connection_bottom2arm,SG_bottom_half,SG_top_half,SG_servo_attachment);
 
 % SGs = {SG,SG_lid};
 if nargout== 0
 	clf;
-    SGplot(SG);
+	SGplot(SG);
+	SGwriteSTL(SG);
 end
 
-SGwriteSTL(SG);
 
 
 end

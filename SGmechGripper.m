@@ -1,8 +1,8 @@
 function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGmechGripper(varargin)
-gripper_height = 50;
+gripper_height = 45;
 
 inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
-inputsGripper = {'grip_H',50,2,43,45};
+inputsGripper = {'grip_H',45,2,43,45};
 
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -15,7 +15,7 @@ if ~isempty(varargin)
 		end
 	end
 end
-
+output=0;
 SG_object = [];
 
 i_idx = 1;
@@ -29,6 +29,8 @@ while i_idx<=size(varargin,2)
 			SG_object = varargin{i_idx+1};
 		case 'grip_H'
 			gripper_height = max(gripper_height,varargin{i_idx+1});
+		case 'output'
+			output =1;
 	end
 	i_idx = i_idx+1;
 end
@@ -232,7 +234,7 @@ SG_plunger = SGTset(SG_plunger,'GripperT',H_Gripper_pos);
 
 length_rod = 40;
 
-CPL_outline = CPLconvexhull([PLcircle(2);PLtrans(PLcircle(axle_R+2),[0 length_rod])]);
+CPL_outline = CPLconvexhull([PLcircle(2);PLtrans(PLcircle(axle_oR),[0 length_rod])]);
 CPL_outline=CPLbool('-',CPL_outline,PLtrans(PLcircle(axle_R),[0 length_rod]));
 SG_outside = SGofCPLz(CPL_outline,2.5);
 
@@ -253,7 +255,7 @@ SG_pathrod = SGstack('z',SG_pin_chamfer_2,SG_pin,SG_outside,SG_outside_mid,SG_ou
 CPL_path = [];
 pHeight = (main_H-10)/2;
 pWidth = (main_R-11)/2;
-positions = [.1 1;.1 .5;1 0;1 -.3;.5 -.7;.5 -.4;.1 -.3;.1 -.5;-.4 -.7;-.4 -.5;-1 0];
+positions = [.1 1;.1 .5;1 0;1 -.3;.5 -.7;.5 -.5;.1 -.4;.1 -.5;-.4 -.7;-.4 -.5;-1 0];
 
 path_R = 2.5;
 for i=0:size(positions,1)
@@ -282,6 +284,7 @@ SG_path = SGstack('z',SG_path_bottom,SG_path);
 SG_path_slot_stops_anti = SGtransrelSG(SG_path_slot_stops_anti,SG_path,'roty',pi/2,'centerx','aligntop');
 SG_path = SGcat(SG_path,SG_path_slot_stops_anti);
 
+
 %% SGconnector 
 length_connector = 20;
 
@@ -298,8 +301,8 @@ H_f = [rotz(0) [0;length_connector;0]; 0 0 0 1];
 SG_connector_PG = SGTset(SG_connector_PG,'F',H_f);
 
 %% SGgripper 
-distance_connection = 17;
-l_factor = 4;
+distance_connection = 14;
+l_factor = 4.85;
 CPL_connection_tra = [-axle_oR -axle_oR;axle_oR -axle_oR;axle_oR+3 axle_oR;-axle_oR-3 axle_oR];
 
 CPL_gripper = CPLconvexhull([PLcircle(axle_oR);PLtrans(PLcircle(axle_oR),[0 distance_connection])]);
@@ -330,7 +333,6 @@ SG_gripper = SGTset(SG_gripper,'F',H_b);
 
 H_f = [rotz(10) [0;distance_connection;0]; 0 0 0 1];
 SG_gripper = SGTset(SG_gripper,'B',H_f);
-
 
 %% SGgripper attachments
 
@@ -385,8 +387,12 @@ SGc = SGcat(SGc);
 
 %% PLOTS
 
+if output
+	SGwriteSTL(SG_gripper_left);
+	SGwriteSTL(SG_gripper_right);
+	SGwriteSTL(SG_lower_attachment);
+end
 SG_plunger = SGtransrelSG(SG_plunger,'','transz',29);
-
 
 SG = SGcatF(SGc,SG_plunger);
 
