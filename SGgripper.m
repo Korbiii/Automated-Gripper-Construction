@@ -543,11 +543,12 @@ SG_finger2horguide_mid = SGofCPLz(CPL_finger2horguide_mid,8);
 SG_finger2horguide = SGstack('z',SG_finger2horguide,SG_finger2horguide_mid,SG_finger2horguide);
 SG_finger2horguide = SGtransrelSG(SG_finger2horguide,'','centerz');
 
-H_b = [rotz(-90) [0;-finger2hor_length/2;0]; 0 0 0 1];
+H_b = [rotz(-85) [0;-finger2hor_length/2;0]; 0 0 0 1];
 SG_finger2horguide = SGTset(SG_finger2horguide,'B',H_b);
 
 H_f = [rotz(0) [0;finger2hor_length/2;0]; 0 0 0 1];
 SG_finger2horguide = SGTset(SG_finger2horguide,'F',H_f);
+SG_finger2horguide = SGcolorfaces(SG_finger2horguide);
 %% Finger_back_bone_bottom
 
 CPL_bb_bottom = CPLconvexhull([PLcircle(axle_oR);PLtrans(PLcircle(axle_oR),[0 bb_bottom_length])]);
@@ -601,7 +602,7 @@ if output == 1
     SGwriteSTL(SG_mid_rotator);
     SGwriteSTL(SG_fl_mid);
 end
-
+SG_lower_finger.alpha = 0.45;
 % Plots
 fc2 = {};
 SG_eles = {SG};
@@ -660,7 +661,7 @@ SG_fl_mid = SGtransrelSG(SG_fl_mid,SG_mid_rotator,'aligntop',3);
 
 SG = SGcatF(SGc,SGc2,SG_mid_rotator,SG_fl_mid);
 if nargout== 0
-    SGTplot(SG);
+    SGplot(SG);
 end
 SG_final = SG;
 SG_gripper_attachment= SG;

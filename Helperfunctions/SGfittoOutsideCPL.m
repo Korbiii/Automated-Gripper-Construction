@@ -1,5 +1,4 @@
 function [SG] = SGfittoOutsideCPL(SG,CPL,dir)
-% CPL = CPLaddauxpoints(CPL,0.25);
 
 switch dir
 	case 'x-'

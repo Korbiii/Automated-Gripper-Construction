@@ -3,7 +3,7 @@ function [SG, CPL] = SGconnAdaptersLCL(varargin)
 tol = 0.5;
 servo_name = 'sm40bl';
 screw_length = 12-3;
-adapter_type = '';
+adapter_type = 'rotLock';
 cable = 1;
 print_help_layer = 0;
 

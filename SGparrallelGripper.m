@@ -7,7 +7,7 @@ servo_name = 'sm40bl';
 conn_type  = 'rotLock';
 
 jaw_th = 5;
-opening = 20;
+opening = 40;
 
 inputsObject = {'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
 inputsGripper = {'jaw_th',5,1,43,45;'opening' 20 2 29 28};
@@ -155,7 +155,7 @@ SG_main_body = SGTset(SG_main_body,'GripperT',H_Gripper_pos);
 CPL_insert = CPLbuffer(CPL_big_dove,-0.2);
 CPL_insert = CPLbool('x',CPL_insert,PLcircle(main_R));
 SG_insert = SGofCPLz(CPL_insert,36.5);
-
+SG_insert = SGtransrelSG(SG_insert,SG_main_body,'aligntop',-10);
 %% Gear to drive gearracks
 
 CPL_gear = PLgearDIN(1,round(servo.connect_R*2.5));
@@ -171,6 +171,7 @@ SG_gear_mid_TH = SGofCPLz(CPL_middle_TH,thread_length-3);
 SG_gear_mid_HH = SGofCPLz(CPL_middle_HH,10-(thread_length-3));
 SG_gear_mid = SGstack('z',SG_gear_mid_TH,SG_gear_mid_HH);
 SG_gear = SGcat(SG_gear,SGalignbottom(SG_gear_mid,SG_gear));
+SG_gear = SGtransrelSG(SG_gear,SG_main_body,'ontop',-8);
 
 %% Grippers
 
@@ -229,7 +230,6 @@ SG_stop_bot = SGfittoOutsideCPL(SG_stop_bot,PLcircseg(main_R,100,-pi,0),'y+');
 SG_stop= SGcat(SG_stop_top,SG_stop_bot);
 
 
-
 %% Gripper inserts
 
 CPL_jaws = PLsquare(opening+2*(jaw_th),2*(out+2.2+9));
@@ -245,7 +245,7 @@ SG_gripper_attachment = SGtrans0(SGofCPLz(CPL_jaws,30));
 H_Object = [rotx(0) [0;0;0]; 0 0 0 1];
 SG_gripper_attachment = SGTset(SG_gripper_attachment,'ObjectPos',H_Object);
 height = min(SG_gripper_attachment.VL(:,3));
-H_Gripper_pos = [rotx(0) [0;0;height-2.5]; 0 0 0 1];
+H_Gripper_pos = [rotx(0) [0;0;height-10]; 0 0 0 1];
 SG_gripper_attachment = SGTset(SG_gripper_attachment,'GripperT',H_Gripper_pos);
 
 
@@ -264,9 +264,14 @@ SG_gripper_attachment.alpha = 0.45;
 
 
 SG_gripper_body = SGcatF(SG_main_body,SGontop(SG_grippers_mir,SG_main_body,-10));
-SG_final = SGcat(SG_gripper_body,SG_gripper_attachment);
+SG_final = SGcat(SG_gripper_body,SG_gripper_attachment,SG_gear);
 if nargout== 0
-    SGplot(SG_final);
+	clf;
+    SGplot(SG_final);	
+	SG_stops = SGtransrelSG(SG_stop,SG_grippers_mir,'alignfront',5,'under',-38);
+	SG_stops = SGcat(SG_stops,SGmirror(SGmirror(SG_stops,'yz'),'xz'));
+	SGplot(SG_stops);
+% 	SGplot(SG_insert);
 end
 % SGwriteSTL(SG_grippers);
 % SGplot(SG_main_body);
