@@ -1,14 +1,23 @@
-%%   [SGs] = SGgripper(attach_width,max_grip_R,gripper_number,ang,gripper_angles,conn_servo_name)
+%%   [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGcompliantGripper([variable_name, value])
 %    === INPUT PARAMETERS ===
-%    attach_width :
-%    max_grip_R :
-%    gripper_number :
-%    ang :
-%    gripper_angles :
-%    conn_servo_name :
+%    'gripper_numbers':		Number of gripper fingers
+%	 'gripper_angles':		Array of absolute gripper angels. e.g. [120,240]
+%    'Radius':				Radius of gripper fingers.
+%	 'servo':				Servo used for gripper
+%	 'conn_servo':			Servo in previous degree of freedom	
+%    'conn_type':			Type of connection to previous degree of freedom
+%    'finger_length_low':	Length of lower finger
+%    'finger_tip_length':	Length of finger tip
+%    'attach_width':		Width of finger atttachment point
+%    'output':				If set function writes STLs
+%	 'c_input':				Cell array of above inputs e.g. {'gripper_numbers',3;'Radius',30}
 %    === OUTPUT RESULTS ======
-%    SGs :
-function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGgripper(varargin)
+%    SG_gripper_sil:		SG of gripper main body
+%	 SG_grippers:			SG of variable gripper parts with reduced alpha value
+%	 SG_final:				SG complete gripper
+%	 inputsObject:			Input array for object manipulation
+%	 inputsGripper:			Input array for gripper manipulation
+function [SG_gripper_sil,SG_grippers,SG_final,inputsObject,inputsGripper] = SGcompliantGripper(varargin)
 
 
 inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
@@ -218,14 +227,14 @@ for i=1:gripper_number
 end
 SG_servocage = SGcat(SG_servocage,SG_gripp_attachments);
 SG_connecting = SGof2CPLsz(CPL_connector,CPL_servocage_bot,10,'center');
-SG = SGstack('z',SG_connector,SG_connecting,SG_servocage);
+SG_gripper_sil = SGstack('z',SG_connector,SG_connecting,SG_servocage);
 
 
-height_SG = max(SG.VL(:,3));
+height_SG = max(SG_gripper_sil.VL(:,3));
 for i=1:gripper_number
 	pos_gripper = PLtransR([0 -max_grip_R-5],deg2rad(gripper_angles(i)));
 	H_f = [roty(90)*rotz(-90)*roty(-gripper_angles(i))*rotz(0) [pos_gripper';height_SG-5]; 0 0 0 1];
-	SG = SGTset(SG,append('F',num2str(i)),H_f);
+	SG_gripper_sil = SGTset(SG_gripper_sil,append('F',num2str(i)),H_f);
 end
 
 
@@ -590,7 +599,7 @@ SG_bb_top = SGTset(SG_bb_top,'F',H_f);
 
 %% STLWRITE
 if output == 1
-    SGwriteSTL(SG);
+    SGwriteSTL(SG_gripper_sil);
     SGwriteSTL(SG_lid);
     SGwriteSTL(SG_lower_finger);
     SGwriteSTL(SG_finger_top);
@@ -605,7 +614,7 @@ end
 SG_lower_finger.alpha = 0.45;
 % Plots
 fc2 = {};
-SG_eles = {SG};
+SG_eles = {SG_gripper_sil};
 for i = 1 : gripper_number
 	fc2{end+1} = 1;
 	fc2{end+1} = append('F',num2str(i));
@@ -633,7 +642,7 @@ fc = SGTframeChain(1,fc2);
 SGc = SGTchain(SG_eles,[0],'',fc);
 SGc = SGcat(SGc);
 
-SG_lid = SGtransrelSG(SG_lid,SG,'ontop',-3);
+SG_lid = SGtransrelSG(SG_lid,SG_gripper_sil,'ontop',-3);
 fc2 = {};
 SG_eles = {SG_lid};
 for i = 1 : gripper_number
@@ -659,13 +668,13 @@ SGc2 = SGcat(SGc2);
 SG_mid_rotator = SGtransrelSG(SG_mid_rotator,SG_lid,'ontop',-4);
 SG_fl_mid = SGtransrelSG(SG_fl_mid,SG_mid_rotator,'aligntop',3);
 
-SG = SGcatF(SGc,SGc2,SG_mid_rotator,SG_fl_mid);
+SG_gripper_sil = SGcatF(SGc,SGc2,SG_mid_rotator,SG_fl_mid);
 if nargout== 0
-    SGplot(SG);
+    SGplot(SG_gripper_sil);
 end
-SG_final = SG;
-SG_gripper_attachment= SG;
-SG_gripper_attachment.alpha = 0;
+SG_final = SG_gripper_sil;
+SG_grippers= SG_gripper_sil;
+SG_grippers.alpha = 0;
 
 
 

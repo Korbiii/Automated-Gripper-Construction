@@ -1,3 +1,12 @@
+%%   SG = SGUnterarm([arm_length,dof,servo_name,attach_servo,attach_dof])
+%    === INPUT PARAMETERS ===
+%	 arm_length:		Length of lower arm
+%	 dof:				Degree of freedom at tip of arm. e.g. 'x','z'
+%	 servo_name:		Servo of dof at tip of arm
+%	 attach_servo:		Servo at used at upper arm tip
+%	 attach_dof:		Degree of freedom at upper arm tip
+%    === OUTPUT RESULTS ======
+%    SG:				SG of lower arm
 function [SG] = SGUnterarm(varargin)
 
 arm_height_increase = 20;

@@ -1,9 +1,24 @@
+%%   [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder([variable_name, value])
+%    === INPUT PARAMETERS ===
+%    'width':				Width of toolholder
+%	 'height':				Height of toolholder
+%    'length':				Length of toolholder
+%    'conn_type':			Connection type. e.g. 'rotLock','z'
+%	 'servo':				Servo used for connection bar rotLock	
+%    'output':				If set function writes STLs
+%	 'c_input':				Cell array of above inputs e.g. {'width',20;'height',30}
+%    === OUTPUT RESULTS ======
+%    SG_base:				SG of toolholder main body
+%	 SG_main_body:			SG of variable toolholder body
+%	 SG_final:				SG complete toolholder
+%	 inputsObject:			Input array for object manipulation
+%	 inputsGripper:			Input array for gripper manipulation
 function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder(varargin)
 servo_name = 'sm40bl';
 adapter_type = 'rotLock';
 width_holder = 50;
 length_holder = 50;
-height_holder = 20;
+height_holder = 50;
 
 inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',0.1,97,100};
 inputsGripper = {'width',50,2,43,45;'height',20,3,104,106;'length',40,3,107,108};
@@ -19,7 +34,7 @@ if ~isempty(varargin)
 		end
 	end
 end
-
+output = 0;
 i_idx = 1;
 SG_object = {};
 while i_idx<=size(varargin,2)
@@ -42,6 +57,8 @@ while i_idx<=size(varargin,2)
 		case 'conn_servo'
 			SG_object = varargin{i_idx+1};		
 			i_idx = i_idx+1;	
+		case 'output'
+			output = 1;
 	end
 	i_idx = i_idx+1;
 end
@@ -90,7 +107,6 @@ SG_complete = SGTset(SG_complete,'GripperT',H_GripperPos);
 if nargout == 0
 	clf;
 	SGplot(SG_complete);
-	SGwriteSTL(SG_complete);
 end
 SG_main_body.alpha = 0.45;
 

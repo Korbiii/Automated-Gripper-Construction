@@ -1,3 +1,16 @@
+%%   [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGmechGripper([variable_name, value])
+%    === INPUT PARAMETERS ===
+%    'grip_H':				Height of gripper attachments
+%	 'conn_servo':			Servo in previous degree of freedom	
+%    'conn_type':			Type of connection to previous degree of freedom
+%    'output':				If set function writes STLs
+%	 'c_input':				Cell array of above inputs e.g. {'grip_H',50;'output'}
+%    === OUTPUT RESULTS ======
+%    SG:					SG of gripper main body
+%	 SG_gripper_attachment:	SG of variable gripper parts with reduced alpha value
+%	 SG_final:				SG complete gripper
+%	 inputsObject:			Input array for object manipulation
+%	 inputsGripper:			Input array for gripper manipulation
 function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGmechGripper(varargin)
 gripper_height = 45;
 

@@ -1,8 +1,18 @@
+%%   [SG, CPL] = SGconnAdaptersLCL([variable_name, value])
+%    === INPUT PARAMETERS ===
+%    'adapter_type':		Type of adapter. Rotation x,z,rotLock
+%	 'servo':				Servo used for adapters that arent rotLock
+%	 'cable':				Hole for cable. default = Cable (1)
+%	 'thread_length':		Threadlength of used screw: default = 12	
+%    'fdm_help_layers':		Activate help Layers for FDM printing
+%    === OUTPUT RESULTS ======
+%    CPL:					CPL of crosssection of top of adapter
+%	 SG:					SG of Adapter
 function [SG, CPL] = SGconnAdaptersLCL(varargin)
 
 tol = 0.5;
 servo_name = 'sm40bl';
-screw_length = 12-3;
+screw_length = 12;
 adapter_type = 'rotLock';
 cable = 1;
 print_help_layer = 0;
@@ -79,8 +89,9 @@ switch adapter_type
 		
 		SG_bracket_w_cut = SGofCPLz(CPL_bracket_w_cut,servo.connect_top_H);
 		SG_bracket = SGof2CPLsz(CPL_bracket,CPL_bracket_small,2);
-		missing_screw_length = screw_length -2 - servo.connect_top_H;
-		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
+		missing_screw_length = screw_length-3 -2 - servo.connect_top_H;
+% 		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
+		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
 		
 		SG = SGstack('z',SG_bracket_w_cut,SG_bracket,SG_screw_length);
 		CPL_chamfer = [0 0;5 0;0 -5];
@@ -96,7 +107,7 @@ switch adapter_type
 		SG = SGTset(SG,'B',H_b);
 		
 		CPL = CPLconvexhull(CPLofSGslice(SG,max(SG.VL(:,3))-1));
-		gap_bracket = screw_length-missing_screw_length;
+		gap_bracket = screw_length-missing_screw_length-3;
 		CPL = [CPL;NaN NaN;PLsquare(2*max(CPL(:,1)-5),2*max(CPL(:,2)-gap_bracket-5))];
 		if adapter_type == 'x'
 			SG = SGtransR(SG,rot(0,0,pi/2));

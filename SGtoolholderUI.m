@@ -1,3 +1,7 @@
+%%   SG = LCLRobot()
+%    === INPUT PARAMETERS ===
+%    === OUTPUT RESULTS ======
+%    
 function SG = SGtoolholderUI()
 clf;
 inputStr = '';

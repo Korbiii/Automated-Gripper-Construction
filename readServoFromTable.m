@@ -1,3 +1,9 @@
+%%   [servo] = readServoFromTable(servo_name)
+%    === INPUT PARAMETERS ===
+%    servo_name :	Name of motor used. Has to match name in Servos.xlsx
+%    === OUTPUT RESULTS ======
+%    servo :		Struct of all parameters saved in Servos.xlsx 
+%
 function [servo] = readServoFromTable(servo_name)
 servo_table = readtable('Servos.xlsx');
 

@@ -1,12 +1,9 @@
-%%   SG = LCLRobot(input1,)
+%%   SG = LCLRobot()
 %    === INPUT PARAMETERS ===
-%    input1 : 
-%
 %    === OUTPUT RESULTS ======
-%    SG : 
-%
+%    
 function [SG] = LCLrobot(varargin)
- clf;
+
 
 load('STL/Base.mat');
 load('STL/Shoulder.mat');
@@ -69,7 +66,7 @@ while next_dof ~= 'n'
 		SGplot(SGc);
 		view(3);
 	else
-		next_servo = 'sm40bl'
+		next_servo = 'sm40bl';
 	end
 	last_servo = next_servo;
 	last_dof = next_dof;
@@ -77,13 +74,13 @@ while next_dof ~= 'n'
 	next_servo = 'sm40bl';
 end
 
-
 SGs{end+1} = SGrotatinglockadapter(1,last_dof,last_servo);
 SGc = SGTchain(SGs,[phis 0]);
-clf;
-SGplot(SGc);
-view(3);
+if nargout == 0
+	clf;
+	SGplot(SGc);
+	view(3);
+end
 
-SGwriteSTL(SGc);
 
 end

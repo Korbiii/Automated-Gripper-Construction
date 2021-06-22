@@ -1,3 +1,18 @@
+%%   [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGparrallelGripper([variable_name, value])
+%    === INPUT PARAMETERS ===
+%    'jaw_th':				Thickness of gripper jaws
+%	 'opening':				Size of gripper opening. Only visual, doesnt change geometry
+%	 'servo':				Servo used for gripper
+%	 'conn_servo':			Servo in previous degree of freedom	
+%    'conn_type':			Type of connection to previous degree of freedom
+%    'output':				If set function writes STLs
+%	 'c_input':				Cell array of above inputs e.g. {'jaw_th',10;'opening',60}
+%    === OUTPUT RESULTS ======
+%    SG_gripper_body:		SG of gripper main body
+%	 SG_gripper_attachment:	SG of variable gripper parts with reduced alpha value
+%	 SG_final:				SG complete gripper
+%	 inputsObject:			Input array for object manipulation
+%	 inputsGripper:			Input array for gripper manipulation
 function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGparrallelGripper(varargin)
 clf;
 tol=0.5;
@@ -160,19 +175,23 @@ SG_insert = SGtransrelSG(SG_insert,SG_main_body,'aligntop',-10);
 
 CPL_gear = PLgearDIN(1,round(servo.connect_R*2.5));
 CPL_gear = CPLbool('-',CPL_gear,PLcircle(servo.connect_R));
+
 CPL_screw_pattern_TH = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
 CPL_screw_pattern_HH = CPLcopyradial(PLcircle(servo.connect_screw_R*2),servo.connect_screw_circle_R,servo.connect_screw_Num);
+
 CPL_middle_TH = CPLbool('-',PLcircle(servo.connect_R),CPL_screw_pattern_TH);
-CPL_middle_TH = CPLbool('-',CPL_middle_TH,PLcircle(servo.connect_top_R));
+CPL_middle_TH_bottom = CPLbool('-',CPL_middle_TH,PLcircle(servo.connect_top_R));
 CPL_middle_HH = CPLbool('-',PLcircle(servo.connect_R),CPL_screw_pattern_HH);
 
 SG_gear = SGofCPLz(CPL_gear,10);
-SG_gear_mid_TH = SGofCPLz(CPL_middle_TH,thread_length-3);
+SG_gear_mid_TH_bottom = SGofCPLz(CPL_middle_TH_bottom,servo.connect_top_H);
+SG_gear_mid_TH = SGofCPLz(CPL_middle_TH,thread_length-3-servo.connect_top_H);
 SG_gear_mid_HH = SGofCPLz(CPL_middle_HH,10-(thread_length-3));
-SG_gear_mid = SGstack('z',SG_gear_mid_TH,SG_gear_mid_HH);
+SG_gear_mid = SGstack('z',SG_gear_mid_TH_bottom,SG_gear_mid_TH,SG_gear_mid_HH);
 SG_gear = SGcat(SG_gear,SGalignbottom(SG_gear_mid,SG_gear));
 SG_gear = SGtransrelSG(SG_gear,SG_main_body,'ontop',-8);
 
+SGwriteSTL(SG_gear);
 %% Grippers
 
 CPL_double_dove_small = CPLbuffer(CPL_double_dove,-0.2);
@@ -228,7 +247,6 @@ SG_stop_bot = SGfittoOutsideCPL(SG_stop_bot,PLcircseg(main_R,100,-pi,0),'y+');
 
 
 SG_stop= SGcat(SG_stop_top,SG_stop_bot);
-
 
 %% Gripper inserts
 

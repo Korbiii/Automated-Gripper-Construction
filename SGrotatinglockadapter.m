@@ -1,7 +1,7 @@
 function [SG] = SGrotatinglockadapter(varargin)
 
 cable = 0; if nargin >=1 && ~isempty(varargin{1}) cable = varargin{1}; end
-attach_dof = 'z'; if nargin >=2 && ~isempty(varargin{2}) attach_dof = varargin{2}; end
+attach_dof = 'x'; if nargin >=2 && ~isempty(varargin{2}) attach_dof = varargin{2}; end
 attach_servo = 'sm40bl'; if nargin >=3 && ~isempty(varargin{3}) attach_servo = varargin{3}; end
 print_help = 0; if nargin >=4 && ~isempty(varargin{4}) print_help = varargin{4}; end
 
