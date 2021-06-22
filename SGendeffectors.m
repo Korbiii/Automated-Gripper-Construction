@@ -4,7 +4,7 @@ SG_object = []; if nargin>=3 && ~isempty(varargin{2}); SG_object=varargin{2}; en
 [SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = deal([]);
 
 
-gripper_options = {'Tool','Mech','Para','Comp'};
+gripper_options = {'Tool','Mech','Para','Comp','TCase'};
 
 switch endE_nameStr
 	case gripper_options(1)
@@ -30,6 +30,12 @@ switch endE_nameStr
 			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGgripper();
 		else
 			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGgripper('c_inputs',inputs,'output');
+		end
+	case gripper_options(5)
+		if isempty(inputs)
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolcasing();
+		else
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolcasing('c_inputs',inputs,'SG_object',SG_object,'output');
 		end
 	otherwise 
 		disp("Gripper options");
