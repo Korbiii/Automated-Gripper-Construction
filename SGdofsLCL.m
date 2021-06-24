@@ -15,12 +15,12 @@ dofs = {'z','x','y','rotLock'};
 SG = [];
 CPL = [];
 tol = 0.5;
-servo_name = 'sm85bl';
+servo_name = 'sm40bl';
 thread_length = 12;
-dof = 'z';
+dof = 'rotLock';
 
-attach_dof = 'y';
-attach_servo = 'sm85bl';
+attach_dof = '';
+attach_servo = 'sm40bl';
 
 print_help_layer = 0;
 cable = 0;
@@ -225,14 +225,6 @@ switch dof
 		
 		CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo.width,servo.length*2));
 		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo.width+2*servo.cable_gap,servo.length*2));
-% 		CPL_long_cable_gap_hor = servo.PL_cable_gap_hor;
-% 		CPL_long_cable_gap_hor(:,1) = CPL_long_cable_gap_hor(:,1)*2;
-% 		CPL_long_cable_gap_hor(:,2) = CPL_long_cable_gap_hor(:,2)*1.1;
-		
-% 		CPL_long_cable_gap_hor=CPLbool('-',CPL_long_cable_gap_hor,PLtrans(PLsquare(5000),[2500 0]));
-% 		CPL_long_cable_gap_hor = PLtrans(CPL_long_cable_gap_hor,[0 -servo.shaft_offs]);
-% 		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside_w_cable_slots,CPL_long_cable_gap_hor);
-		
 		
 		
 		CPL_outside_w_screw_slots = CPL_outside_w_servo_slot;
@@ -357,7 +349,7 @@ switch dof
 			SG_main = SGcat(SG_main,SGalignbottom(SG_help_layer,SG_main));
 		end
 		
-		SG_bottom = SGcat(SG_stubs,SG_main);
+		SG = SGcat(SG_stubs,SG_main);
 		
 		servo = readServoFromTable(attach_servo);
 		if cable
@@ -375,7 +367,7 @@ switch dof
 				CPL_connector = CPLbool('-',CPL_connector,PLcircle(servo.connect_R));
 			end
 			SG_connection = SGof2CPLsz(CPL_connector,CPL_bottom,10,'center');
-			SG = SGstack('z',SG_connector,SG_connection,SG_bottom);
+			SG = SGstack('z',SG_connector,SG_connection,SG);
 		end
 				
 end

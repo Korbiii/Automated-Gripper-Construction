@@ -7,16 +7,45 @@
 %	 attach_dof:		Degree of freedom at upper arm tip
 %    === OUTPUT RESULTS ======
 %    SG:				SG of lower arm
-function [SG] = SGUnterarm(varargin)
+function [SG] = SGLCLlowerArm(varargin)
 
 arm_height_increase = 20;
 angle = 0;
+dof = 'z';
+arm_length = 60;
+servo_name = 'sm40bl';
+attach_dof = 'legacy';
 
-arm_length = 60; if nargin >=1 && ~isempty(varargin{1}) arm_length = varargin{1}; end
-dof = 'z'; if nargin >=2 && ~isempty(varargin{2}) dof = varargin{2}; end
-servo_name = 'sm40bl'; if nargin >=3 && ~isempty(varargin{3}) servo_name = varargin{3}; end
-attach_servo = 'sm120bl'; if nargin >=4 && ~isempty(varargin{4}) attach_servo = varargin{4}; end
-attach_dof = 'legacy'; if nargin >=5 && ~isempty(varargin{5}) attach_dof = varargin{5}; end
+i_idx = 1;
+while i_idx<=size(varargin,2)
+	if ~ischar(varargin{i_idx})
+		i_idx = i_idx+1;
+		continue;
+	end
+	switch varargin{i_idx}
+		case 'dof'
+			dof = varargin{i_idx+1};
+			i_idx = i_idx+1;		
+		case 'servo_name'
+			servo_name = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'attach_servo'
+			attach_servo = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'attach_dof'
+			attach_dof = varargin{i_idx+1};
+			i_idx = i_idx+1;
+		case 'arm_length'
+			arm_length = varargin{i_idx+1};
+		case 'arm_height_increase'
+			arm_height_increase = varargin{i_idx+1};
+		case 'angle'
+			angle = varargin{i_idx+1};			
+		otherwise
+			error(varargin{i_idx} + " isn't a valid flag!");
+	end
+	i_idx = i_idx+1;
+end
 
 %% ARM
 width_bottom = 50;

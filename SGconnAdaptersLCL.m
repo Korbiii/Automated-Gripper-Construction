@@ -11,9 +11,9 @@
 function [SG, CPL] = SGconnAdaptersLCL(varargin)
 
 tol = 0.5;
-servo_name = 'sm40bl';
+servo_name = 'sm85bl';
 screw_length = 12;
-adapter_type = 'rotLock';
+adapter_type = 'legacy';
 cable = 1;
 print_help_layer = 0;
 

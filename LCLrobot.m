@@ -21,21 +21,21 @@ view(3);
 
 
 arm_length = str2double(inputdlg('How long should the lower arm be?'));
-SGs{end+1} = SGUnterarm(arm_length,'z','sm40bl');
+SGs{end+1} = SGLCLlowerArm('arm_length',arm_length,'dof','z','servo','sm40bl');
 SGc = SGTchain(SGs,phis);
 clf;
 SGplot(SGc);
 view(3);
 
 last_dof = dof_options{listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the lower arm degree of freedom')};
-SGs{end} = SGUnterarm(arm_length,last_dof,'sm40bl');
+SGs{end} = SGLCLlowerArm('arm_length',arm_length,'dof',last_dof,'servo','sm40bl');
 SGc = SGTchain(SGs,phis);
 clf;
 SGplot(SGc);
 view(3);
 
 last_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
-SGs{end} = SGUnterarm(arm_length,last_dof,last_servo);
+SGs{end} = SGLCLlowerArm('arm_length',arm_length,'dof',last_dof,'servo',last_servo);
 SGc = SGTchain(SGs,phis);
 clf;
 SGplot(SGc);
