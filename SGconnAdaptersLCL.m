@@ -90,9 +90,8 @@ switch adapter_type
 		SG_bracket_w_cut = SGofCPLz(CPL_bracket_w_cut,servo.connect_top_H);
 		SG_bracket = SGof2CPLsz(CPL_bracket,CPL_bracket_small,2);
 		missing_screw_length = screw_length-3 -2 - servo.connect_top_H;
-% 		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
-		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
-		
+		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
+ 		
 		SG = SGstack('z',SG_bracket_w_cut,SG_bracket,SG_screw_length);
 		CPL_chamfer = [0 0;5 0;0 -5];
 		SG_chamfer = SGofCPLz(CPL_chamfer,(servo.width/2+5)*2);
@@ -299,6 +298,10 @@ switch adapter_type
 end
 if cable == 0
 	CPL = CPLconvexhull(CPL);
+end
+if nargout == 0
+	clf;
+	SGplot(SG);
 end
 
 end

@@ -14,7 +14,7 @@ SG_object = []; if nargin>=3 && ~isempty(varargin{2}); SG_object=varargin{2}; en
 [SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = deal([]);
 
 
-gripper_options = {'Tool','Mech','Para','Comp','TCase'};
+gripper_options = {'Simple Toolholder','Mechanical Gripper','Parallel Gripper','Compliant Gripper','Tool Casing'};
 
 switch endE_nameStr
 	case gripper_options(1)

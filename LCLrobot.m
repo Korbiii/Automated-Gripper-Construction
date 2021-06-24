@@ -3,78 +3,63 @@
 %    === OUTPUT RESULTS ======
 %    
 function [SG] = LCLrobot(varargin)
+close all
 
+[~,~,dof_options] = SGdofsLCL();
+servo_options = readtable('Servos.xlsx');
+servo_options = table2cell(servo_options(:,1));
 
 load('STL/Base.mat');
 load('STL/Shoulder.mat');
 load('STL/UpperArm.mat');
 
 phis = [0 pi -pi/4 -pi/4];
-
-
 SGs = {SG_base,SG_shoulder,SG_upper_Arm};
-
 SGc = SGTchain(SGs,[0 pi -pi/4]);
-
-
 SGplot(SGc);
 view(3);
 
-arm_length = input('How long should the lower arm be? ');
+
+arm_length = str2double(inputdlg('How long should the lower arm be?'));
 SGs{end+1} = SGUnterarm(arm_length,'z','sm40bl');
 SGc = SGTchain(SGs,phis);
 clf;
 SGplot(SGc);
 view(3);
 
-yes_no = input('Do you want a different degree of Freedom? y/n ','s');
-last_dof = 'z';
-if yes_no == 'y'
-	last_dof = input('What degree of freedom do you want at the end of your lower arm? x = movement in plane/ y=movement perpendicular to plane of lower arm ','s');
-	SGs{end} = SGUnterarm(arm_length,last_dof,'sm40bl');
-	SGc = SGTchain(SGs,phis);
-	clf;
-	SGplot(SGc);
-	view(3);
-end
-last_servo = input('Do you want a different motor for the dof? n for sm40bl no or name of motor e.g. sm85bl','s');
-if last_servo ~= 'n'
-	SGs{end} = SGUnterarm(arm_length,last_dof,last_servo);
-	SGc = SGTchain(SGs,phis);
-	clf;
-	SGplot(SGc);
-	view(3);	
-else
-	last_servo = 'sm40bl';
-end
+last_dof = dof_options{listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the lower arm degree of freedom')};
+SGs{end} = SGUnterarm(arm_length,last_dof,'sm40bl');
+SGc = SGTchain(SGs,phis);
+clf;
+SGplot(SGc);
+view(3);
+
+last_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
+SGs{end} = SGUnterarm(arm_length,last_dof,last_servo);
+SGc = SGTchain(SGs,phis);
+clf;
+SGplot(SGc);
+view(3);
 
 
-next_dof = input('Specify next degree of freedom! n = no additional dof/ x/z/y for next dof','s');
-next_servo = 'sm40bl';
-while next_dof ~= 'n'
+next_dof = listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the next dof');
+while ~isempty(next_dof)
+	next_dof = dof_options{next_dof};
+	next_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
+		
 	SGs{end+1} = SGdofsLCL('attach_dof',last_dof,'dof',next_dof,'servo',next_servo,'attach_servo',last_servo);
 	phis = [phis 0];
 	SGc = SGTchain(SGs,phis);
 	clf;
 	SGplot(SGc);
-	view(3);		
-	next_servo = input('Do you want a different motor for the dof? n for sm40bl no or name of motor e.g. sm85bl','s');
-	if next_servo ~= 'n'
-		SGs{end} = SGdofsLCL('attach_dof',last_dof,'dof',next_dof,'servo',next_servo,'attach_servo',last_servo);
-		SGc = SGTchain(SGs,phis);
-		clf;
-		SGplot(SGc);
-		view(3);
-	else
-		next_servo = 'sm40bl';
-	end
+	view(3);
+	
 	last_servo = next_servo;
 	last_dof = next_dof;
-	next_dof = input('Specify next degree of freedom! n = no additional dof/ x/z/y for next dof','s');
-	next_servo = 'sm40bl';
+	next_dof = listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the next dof');	
 end
 
-SGs{end+1} = SGrotatinglockadapter(1,last_dof,last_servo);
+SGs{end+1} = SGdofsLCL('attach_dof',last_dof,'dof','rotLock','attach_servo',last_servo,'cable');
 SGc = SGTchain(SGs,[phis 0]);
 if nargout == 0
 	clf;

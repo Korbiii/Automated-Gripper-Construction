@@ -20,7 +20,7 @@ width_holder = 50;
 length_holder = 50;
 height_holder = 50;
 
-inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',0.1,97,100};
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,113,101;'roty',pi/2,97,100};
 inputsGripper = {'width',50,2,43,45;'height',20,3,104,106;'length',40,3,107,108};
 
 if ~isempty(varargin)
@@ -64,11 +64,11 @@ while i_idx<=size(varargin,2)
 end
 
 
+
+
 CPL_base = PLroundcorners(PLsquare(width_holder,length_holder),[1,2,3,4],10);
-CPL_base_small = PLroundcorners(PLsquare(width_holder-10),[1,2,3,4],10);
-SG_base_top = SGof2CPLsz(CPL_base,CPL_base_small,5);
-SG_main_body = SGofCPLz(CPL_base,height_holder);
-SG_main_body = SGboolh('+',SG_main_body,SGontop(SG_base_top,SG_main_body,-0.1));
+SG_base = SGofCPLzchamfer(CPL_base,height_holder*2,height_holder*0.05);
+[~,SG_main_body] = SGcut(SG_base,height_holder);
 
 height_max = max(SG_main_body.VL(:,3));
 T_Object = [rotx(0) [0;0;height_max]; 0 0 0 1];

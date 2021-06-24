@@ -1,4 +1,4 @@
-%%   [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGcompliantGripper([variable_name, value])
+%%   [SG_gripper_sil,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGcompliantGripper([variable_name, value])
 %    === INPUT PARAMETERS ===
 %    'gripper_numbers':		Number of gripper fingers
 %	 'gripper_angles':		Array of absolute gripper angels. e.g. [120,240]
@@ -39,8 +39,8 @@ conn_type  = 'rotLock';
 
 
 %% Default variables
-output = 1;
-
+output = 0;
+axle_lengths =[];
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
 		temp = varargin{2};
@@ -227,14 +227,14 @@ for i=1:gripper_number
 end
 SG_servocage = SGcat(SG_servocage,SG_gripp_attachments);
 SG_connecting = SGof2CPLsz(CPL_connector,CPL_servocage_bot,10,'center');
-SG_gripper_sil = SGstack('z',SG_connector,SG_connecting,SG_servocage);
+SG_main_body = SGstack('z',SG_connector,SG_connecting,SG_servocage);
 
 
-height_SG = max(SG_gripper_sil.VL(:,3));
+height_SG = max(SG_main_body.VL(:,3));
 for i=1:gripper_number
 	pos_gripper = PLtransR([0 -max_grip_R-5],deg2rad(gripper_angles(i)));
 	H_f = [roty(90)*rotz(-90)*roty(-gripper_angles(i))*rotz(0) [pos_gripper';height_SG-5]; 0 0 0 1];
-	SG_gripper_sil = SGTset(SG_gripper_sil,append('F',num2str(i)),H_f);
+	SG_main_body = SGTset(SG_main_body,append('F',num2str(i)),H_f);
 end
 
 
@@ -481,8 +481,16 @@ CPL_spring_attachment = PLtubbing(1,3,'',-pi/2,pi/2);
 SG_spring_attachment = SGofCPLz(CPL_spring_attachment,5);
 SG_spring_attachment = SGtransrelSG(SG_spring_attachment,'','rotx',pi/2,'transx',axle_oR,'transy',attachment_point+axle_oR);
 
+[~,~,lfm_H] = sizeVL(SG_lower_finger_mid.VL);
+[~,~,lf_H] = sizeVL(SG_lower_finger.VL);
+
 SG_lower_finger = SGstack('z',SG_lower_finger_mid,SG_lower_finger,SG_cover);
 SG_lower_finger = SGcat(SG_lower_finger,SGmirror(SG_lower_finger,'xy'),SG_spring_attachment);
+
+
+for i=1:gripper_number
+	axle_lengths = [axle_lengths 2*(lfm_H+lf_H) 2*(lfm_H+lf_H)];
+end
 
 H_b = [rotz(190) [0;0;0]; 0 0 0 1];
 SG_lower_finger = SGTset(SG_lower_finger,'B',H_b);
@@ -528,6 +536,12 @@ SG_finger_tip = SGtransrelSG(SG_finger_tip,SG_finger_tip_attach,'rotx',-pi/2,'ro
 
 SG_finger_top = SGcat(SG_finger_tip,SG_finger_tip_attach);
 
+[~,~,ftfa_H] = sizeVL(SG_finger_tip_front_attach.VL);
+[~,~,ftba_H] = sizeVL(SG_finger_tip_back_attach.VL);
+for i=1:gripper_number
+	axle_lengths = [axle_lengths 2*(ftfa_H+ftba_H)];
+end
+
 H_b = [rotz(0) [0;0;0]; 0 0 0 1];
 SG_finger_top = SGTset(SG_finger_top,'B',H_b);
 
@@ -549,8 +563,15 @@ CPL_finger2horguide_mid = CPLbool('-',CPL_finger2horguide_mid,PLtrans(PL_cut,[0 
 SG_finger2horguide = SGofCPLz(CPL_finger2horguide,3.75);
 SG_finger2horguide_mid = SGofCPLz(CPL_finger2horguide_mid,8);
 
+[~,~,f2hg_H] = sizeVL(SG_finger2horguide.VL);
+[~,~,f2hgm_H] = sizeVL(SG_finger2horguide_mid.VL);
+
 SG_finger2horguide = SGstack('z',SG_finger2horguide,SG_finger2horguide_mid,SG_finger2horguide);
 SG_finger2horguide = SGtransrelSG(SG_finger2horguide,'','centerz');
+
+for i=1:gripper_number
+	axle_lengths = [axle_lengths 2*f2hg_H+f2hgm_H 2*f2hg_H+f2hgm_H];
+end
 
 H_b = [rotz(-85) [0;-finger2hor_length/2;0]; 0 0 0 1];
 SG_finger2horguide = SGTset(SG_finger2horguide,'B',H_b);
@@ -572,8 +593,17 @@ CPL_bb_bottom_mid = CPLbool('-',CPL_bb_bottom,PLtrans(CPL_bb_cutout,[0 bb_bottom
 
 SG_bb_bottom = SGofCPLz(CPL_bb_bottom,1.675);
 SG_bb_bottom_mid = SGofCPLz(CPL_bb_bottom_mid,4.25);
+
+[~,~,bbb_H] = sizeVL(SG_bb_bottom.VL);
+[~,~,bbbm_H] = sizeVL(SG_bb_bottom_mid.VL);
+
 SG_bb_bottom = SGstack('z',SG_bb_bottom,SG_bb_bottom_mid,SG_bb_bottom);
 SG_bb_bottom = SGtransrelSG(SG_bb_bottom,'','centerz');
+
+for i=1:gripper_number
+	axle_lengths = [axle_lengths 2*bbb_H+bbbm_H];
+end
+
 H_b = [rotz(-90) [0;bb_bottom_length;0]; 0 0 0 1];
 SG_bb_bottom = SGTset(SG_bb_bottom,'B',H_b);
 
@@ -597,24 +627,31 @@ SG_bb_top = SGTset(SG_bb_top,'B',H_b);
 H_f = [rotz(0) [0;-bb_top_length/2;2]; 0 0 0 1];
 SG_bb_top = SGTset(SG_bb_top,'F',H_f);
 
+
+
 %% STLWRITE
 if output == 1
-    SGwriteSTL(SG_gripper_sil);
-    SGwriteSTL(SG_lid);
-    SGwriteSTL(SG_lower_finger);
-    SGwriteSTL(SG_finger_top);
-    SGwriteSTL(SG_bb_top);
-    SGwriteSTL(SG_bb_bottom);
-    SGwriteSTL(SG_runner);
-    SGwriteSTL(SG_rod_connections);
-    SGwriteSTL(SG_finger2horguide);
-    SGwriteSTL(SG_mid_rotator);
-    SGwriteSTL(SG_fl_mid);
+    SGwriteSTL(SGtransrelSG(SG_main_body,'','roty',pi),'Main Body','hallu');
+    SGwriteSTL(SG_lid,'Lid for Main Body');	
+    SGwriteSTL(SGtransrelSG(SG_lower_finger,'','roty',-pi/2),'Lower finger');
+    SGwriteSTL(SGtransrelSG(SG_finger_top,'','roty',pi/2),'Finger tip');
+    SGwriteSTL(SG_bb_top,'Finger Bone Top');
+    SGwriteSTL(SG_bb_bottom,'Finger Bone Bottom');
+    SGwriteSTL(SGtransrelSG(SG_runner,'','rotx',pi/2),'Horizontal Runner');
+    SGwriteSTL(SGtransrelSG(SG_rod_connections,'','rotx',pi),'Connection Runner motorflansch');	
+    SGwriteSTL(SGtransrelSG(SG_finger2horguide,'','roty',-pi/2),'Finger2Horizontal Runner');	
+    SGwriteSTL(SG_mid_rotator,'Motorflanch');	
+    SGwriteSTL(SGtransrelSG(SG_fl_mid,'','rotx',pi),'Finger Lever');
+	SGwriteSTL(SGarrangeSG(SGaxle(axle_R,axle_lengths)),'Axles');
+	SGwriteMultipleSTL(SGaxle(axle_R,axle_lengths),'Axles');
 end
+
+
+
+%% Plots
 SG_lower_finger.alpha = 0.45;
-% Plots
 fc2 = {};
-SG_eles = {SG_gripper_sil};
+SG_eles = {SG_main_body};
 for i = 1 : gripper_number
 	fc2{end+1} = 1;
 	fc2{end+1} = append('F',num2str(i));
@@ -642,7 +679,7 @@ fc = SGTframeChain(1,fc2);
 SGc = SGTchain(SG_eles,[0],'',fc);
 SGc = SGcat(SGc);
 
-SG_lid = SGtransrelSG(SG_lid,SG_gripper_sil,'ontop',-3);
+SG_lid = SGtransrelSG(SG_lid,SG_main_body,'ontop',-3);
 fc2 = {};
 SG_eles = {SG_lid};
 for i = 1 : gripper_number
@@ -673,7 +710,7 @@ if nargout== 0
     SGplot(SG_gripper_sil);
 end
 SG_final = SG_gripper_sil;
-SG_grippers= SG_gripper_sil;
+SG_grippers= SG_main_body;
 SG_grippers.alpha = 0;
 
 

@@ -9,18 +9,22 @@
 %    === OUTPUT RESULTS ======
 %    CPL:					CPL of crosssection of bottom of degree of freedom
 %	 SG:					SG of degree of freedom
-function [SG, CPL] = SGdofsLCL(varargin)
+function [SG, CPL, dofs] = SGdofsLCL(varargin)
 
+dofs = {'z','x','y','rotLock'};
+SG = [];
+CPL = [];
 tol = 0.5;
-servo_name = 'sm40bl';
+servo_name = 'sm85bl';
 thread_length = 12;
-dof = 'x';
+dof = 'z';
 
-attach_dof = 'z';
-attach_servo = 'sm40bl';
+attach_dof = 'y';
+attach_servo = 'sm85bl';
 
 print_help_layer = 0;
-
+cable = 0;
+print_help=1;
 
 i_idx = 1;
 while i_idx<=size(varargin,2)
@@ -45,6 +49,10 @@ while i_idx<=size(varargin,2)
 			print_help_layer = 1;
 		case 'thread_length'
 			thread_length = varargin{i_idx+1};
+		case 'cable'
+			cable = 1;
+		case 'print_help'
+			print_help =1;
 		otherwise
 			error(varargin{i_idx} + " isn't a valid flag!");
 	end
@@ -210,21 +218,20 @@ switch dof
 		cable_gap_length = max(servo.PL_cable_gap_ver(:,2))-min(servo.PL_cable_gap_ver(:,2));
 		
 		CPL_outside = CPLconvexhull([PLcircle(outer_radius);[-outer_radius,-distance_axis;outer_radius,-distance_axis]]);
-		CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(servo.connect_R);[-servo.shaft_R-tol,30;servo.shaft_R+tol,30]]));
+		CPL_outside = CPLbool('-',CPL_outside,CPLconvexhull([PLcircle(servo.connect_R);[-servo.connect_R-tol,30;servo.connect_R+tol,30]]));
 		
 		CPL_outside_small = CPLconvexhull([PLcircle(outer_radius-3);[-outer_radius+3,-distance_axis;outer_radius-3,-distance_axis]]);
-		CPL_outside_small= CPLbool('-',CPL_outside_small,CPLconvexhull([PLcircle(servo.connect_R);[-servo.shaft_R-tol,30;servo.shaft_R+tol,30]]));
+		CPL_outside_small= CPLbool('-',CPL_outside_small,CPLconvexhull([PLcircle(servo.connect_R);[-servo.connect_R-tol,30;servo.connect_R+tol,30]]));
 		
 		CPL_outside_w_servo_slot = CPLbool('-',CPL_outside,PLsquare(servo.width,servo.length*2));
 		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside,PLsquare(servo.width+2*servo.cable_gap,servo.length*2));
-		CPL_long_cable_gap_hor = servo.PL_cable_gap_hor;
-		CPL_long_cable_gap_hor(:,1) = CPL_long_cable_gap_hor(:,1)*2;
-		CPL_long_cable_gap_hor(:,2) = CPL_long_cable_gap_hor(:,2)*1.1;
+% 		CPL_long_cable_gap_hor = servo.PL_cable_gap_hor;
+% 		CPL_long_cable_gap_hor(:,1) = CPL_long_cable_gap_hor(:,1)*2;
+% 		CPL_long_cable_gap_hor(:,2) = CPL_long_cable_gap_hor(:,2)*1.1;
 		
-		CPL_long_cable_gap_hor=CPLbool('-',CPL_long_cable_gap_hor,PLtrans(PLsquare(5000),[2500 0]));
-		
-		CPL_long_cable_gap_hor = PLtrans(CPL_long_cable_gap_hor,[0 -servo.shaft_offs]);
-		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside_w_cable_slots,CPL_long_cable_gap_hor);
+% 		CPL_long_cable_gap_hor=CPLbool('-',CPL_long_cable_gap_hor,PLtrans(PLsquare(5000),[2500 0]));
+% 		CPL_long_cable_gap_hor = PLtrans(CPL_long_cable_gap_hor,[0 -servo.shaft_offs]);
+% 		CPL_outside_w_cable_slots = CPLbool('-',CPL_outside_w_cable_slots,CPL_long_cable_gap_hor);
 		
 		
 		
@@ -315,7 +322,62 @@ switch dof
 		end
 		
 		SG = SGtransrelSG(SG,'','alignbottom');
+	case 'rotLock'		
+		outer_R = 32.5;
+		inner_R = 15.5;
+		connect_R = 23.5;
+		height = 9.5;
 		
+		CPL_connection_bottom = [connect_R+.5 height;connect_R+.5 3.5;connect_R-.5 5;21 4.5;inner_R+.5 height];
+		CPL_connection_stop = CPLbool('+',CPL_connection_bottom,[connect_R+.5 0;connect_R+.5 height;connect_R-3 height;connect_R-3 0]);
+		
+		SG_stub = SGofCPLrota(CPL_connection_bottom,(1/4)*pi,false);
+		SG_stub_stop = SGofCPLrota(CPL_connection_stop,0.2,false);
+		SG_stub_stop = SGtransR(SG_stub_stop,rot(0,0,-0.2));
+		SG_stub = SGcat(SG_stub,SG_stub_stop);
+		SG_stubs = SGcircularpattern(SG_stub,3,2*pi/3);
+		
+		CPL_main = [outer_R-0.5 height;outer_R-0.5 0;connect_R+.5 0;connect_R+.5 height];
+		CPL_main = PLroundcorners(CPL_main,1,2.5,'',0);
+		SG_main = SGofCPLrota(CPL_main,((2/3)*pi)-0.4,false);
+		
+		
+		SG_main = SGcircularpattern(SG_main,3,2*pi/3);
+		
+		
+		CPL_main_connections = [outer_R-4 height;outer_R-4 0;connect_R+.5 0;connect_R+.5 height];
+		SG_main_connections = SGofCPLrota(CPL_main_connections,0.4,false,-0.4);
+		
+		SG_main_connections = SGcircularpattern(SG_main_connections,3,2*pi/3);
+		SG_main =SGcat(SG_main,SG_main_connections);
+		
+		
+		if print_help
+			SG_help_layer = SGofCPLz(PLcircle(outer_R-0.5),0.2);
+			SG_main = SGcat(SG_main,SGalignbottom(SG_help_layer,SG_main));
+		end
+		
+		SG_bottom = SGcat(SG_stubs,SG_main);
+		
+		servo = readServoFromTable(attach_servo);
+		if cable
+			CPL_bottom = PLcircle(outer_R-0.5);
+			CPL_bottom = CPLbool('-',CPL_bottom,PLcircle(servo.connect_R));
+		else
+			CPL_bottom = PLcircle(outer_R-0.5);
+		end
+		
+		
+		if attach_dof ~= 0
+			[SG_connector,CPL_connector] = SGconnAdaptersLCL('servo',attach_servo,'adapter_type',attach_dof,'cable',cable);
+			if attach_dof == 'z'
+				CPL_bottom = CPLbool('-',CPL_bottom,PLcircle(servo.connect_R));
+				CPL_connector = CPLbool('-',CPL_connector,PLcircle(servo.connect_R));
+			end
+			SG_connection = SGof2CPLsz(CPL_connector,CPL_bottom,10,'center');
+			SG = SGstack('z',SG_connector,SG_connection,SG_bottom);
+		end
+				
 end
 
 if nargout == 0
