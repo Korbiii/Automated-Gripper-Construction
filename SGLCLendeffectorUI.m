@@ -71,6 +71,7 @@ if nargout == 0
 	SGplot(SG);
 	SGwriteSTL(SG);
 end
+view(3)
 
 
 end
@@ -289,7 +290,7 @@ while true
 	end
 	
 end
-
+inputsG(end+1,:) = {'output',1,'','',''};
 [~,~,SG_final] = SGendeffectors(inputStr,inputsG,SG_object);
 end
 

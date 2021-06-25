@@ -80,7 +80,7 @@ SG_main_body = SGTset(SG_main_body,'GripperT',T_connection_top);
 
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_main_body,'alignTz',{'ObjectPos','ObjectPos'});	
-	SG_main_body = SGbool3('-',SG_main_body,SG_object);
+	SG_main_body=SGslicebool(SG_main_body,SG_object);
 end
 
 [SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type',adapter_type,'servo',servo_name,'cable',0);

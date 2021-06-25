@@ -191,7 +191,6 @@ SG_gear_mid = SGstack('z',SG_gear_mid_TH_bottom,SG_gear_mid_TH,SG_gear_mid_HH);
 SG_gear = SGcat(SG_gear,SGalignbottom(SG_gear_mid,SG_gear));
 SG_gear = SGtransrelSG(SG_gear,SG_main_body,'ontop',-8);
 
-SGwriteSTL(SG_gear);
 %% Grippers
 
 CPL_double_dove_small = CPLbuffer(CPL_double_dove,-0.2);
@@ -271,12 +270,12 @@ SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignTz
 
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_gripper_attachment,'alignTz',{'ObjectPos','ObjectPos'});	
-	SG_gripper_attachment = SGbool3('-',SG_gripper_attachment,SG_object);
+	SG_gripper_attachment = SGslicebool(SG_gripper_attachment,SG_object);
 end
 
 
-SG_gripper_attachment.alpha = 0.45;
-SG_gripper_attachment_ = SGanalyzeGroupParts(SG_gripper_attachment);
+SG_gripper_attachment.alpha = 0.75;
+% SG_gripper_attachment_ = SGanalyzeGroupParts(SG_gripper_attachment);
 
 %%
 

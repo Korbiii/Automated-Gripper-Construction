@@ -400,20 +400,25 @@ height = max(SG_lower_attachment.VL(:,3));
 H_Object = [rotx(0) [0;0;height]; 0 0 0 1];
 SG_lower_attachment = SGTset(SG_lower_attachment,'ObjectPos',H_Object);
 
-height = min(SG_lower_attachment.VL(:,3));
-H_Gripper_pos = [rotx(180) [0;0;height+10]; 0 0 0 1];
-SG_lower_attachment = SGTset(SG_lower_attachment,'GripperT',H_Gripper_pos);
-
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_lower_attachment,'alignTz',{'ObjectPos','ObjectPos'});
 	
-	SG_gripper_left = SGbool3('-',SG_gripper_left,SG_object);
-	SG_gripper_right = SGbool3('-',SG_gripper_right,SG_object);	
-	SG_lower_attachment = SGbool3('-',SG_lower_attachment,SG_object);	
+% 	SG_gripper_left = SGbool3('-',SG_gripper_left,SG_object);
+% 	SG_gripper_right = SGbool3('-',SG_gripper_right,SG_object);	
+% 	SG_lower_attachment = SGbool3('-',SG_lower_attachment,SG_object);
+	SG_gripper_left= SGslicebool(SG_gripper_left,SG_object);
+	SG_gripper_right = SGslicebool(SG_gripper_right,SG_object);
+	SG_lower_attachment=SGslicebool(SG_lower_attachment,SG_object);
+	
 end
 
+height = min(SG_lower_attachment.VL(:,3));
+H_Gripper_pos = [rotx(0) [0;0;height+10]; 0 0 0 1];
+SG_lower_attachment = SGTset(SG_lower_attachment,'GripperT',H_Gripper_pos);
+
+
 SG_gripper_attachment = SGcatF(SG_lower_attachment,SG_gripper_left,SG_gripper_right);
-SG_gripper_attachment.alpha = 0.45;
+SG_gripper_attachment.alpha = 0.75;
 
 %% SGTchains
 

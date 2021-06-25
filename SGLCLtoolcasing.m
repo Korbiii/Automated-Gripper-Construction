@@ -46,7 +46,6 @@ while i_idx<=size(varargin,2)
 	i_idx = i_idx+1;
 end
 
-SG_object = SGbox(25);
 CPL_base = PLroundcorners(PLsquare(width_holder,height_holder),[3,4],width_holder*0.05);
 
 
@@ -57,15 +56,11 @@ CPL_screw_HH = CPLatPL(PLcircle(3),PL_hole_positions);
 CPL_base_TH = CPLbool('-',CPL_base,CPL_screw_TH);
 CPL_base_HH = CPLbool('-',CPL_base,CPL_screw_HH);
 
-SG_plane_TH = SGofCPLzdelaunayGrid(CPL_base_TH,0.5,1,1);
-SG_plane_TH = SGtrans(SG_plane_TH,[0 0 30]);
-SG_plane_TH = SGfittoSG(SG_plane_TH,SG_object,[0 0 -1],0);
-
 SG_fixed_side = SGofCPLz(CPL_base_TH,thickness/2);
 SG_variable_side_in = SGofCPLz(CPL_base_TH,5);
 SG_variable_side_out = SGofCPLz(CPL_base_HH,(thickness/2)-5);
 
-SG_variable_side = SGboolh('+',SG_variable_side_in,SGontop(SG_variable_side_out,SG_variable_side_in,-0.1));
+SG_variable_side = SGcat(SG_variable_side_in,SGontop(SG_variable_side_out,SG_variable_side_in,-0.01));
 
 SG_fixed_side = SGtransrelSG(SG_fixed_side,'','rotx',pi/2,'transy',thickness/2);
 SG_variable_side = SGtransrelSG(SG_variable_side,'','rotx',pi/2);
@@ -82,8 +77,10 @@ SG_main_body = SGTset(SG_main_body,'GripperT',T_connection_top);
 
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_main_body,'alignTz',{'ObjectPos','ObjectPos'});	
-	SG_fixed_side = SGbool4('-',SG_fixed_side,SG_object);
-	SG_variable_side = SGbool4('-',SG_variable_side,SG_object);	
+	
+	SG_fixed_side = SGslicebool(SG_fixed_side,SG_object);
+	SG_variable_side = SGslicebool(SG_variable_side,SG_object);	
+	
 	SG_main_body = SGcatF(SG_fixed_side,SG_variable_side);
 end
 
@@ -114,7 +111,7 @@ if nargout == 0
 	SGwriteSTL(SG_complete);
 	SGwriteSTL(SG_base);
 end
-SG_main_body.alpha = 0.45;
+SG_main_body.alpha = 0.85;
 
 
 end
