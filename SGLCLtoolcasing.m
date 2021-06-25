@@ -46,8 +46,9 @@ while i_idx<=size(varargin,2)
 	i_idx = i_idx+1;
 end
 
-
+SG_object = SGbox(25);
 CPL_base = PLroundcorners(PLsquare(width_holder,height_holder),[3,4],width_holder*0.05);
+
 
 PL_hole_positions =PLsquare(width_holder-10,height_holder-10);
 PL_hole_positions = CPLaddauxpoints(PL_hole_positions,20);
@@ -55,6 +56,10 @@ CPL_screw_TH = CPLatPL(PLcircle(1.6),PL_hole_positions);
 CPL_screw_HH = CPLatPL(PLcircle(3),PL_hole_positions);
 CPL_base_TH = CPLbool('-',CPL_base,CPL_screw_TH);
 CPL_base_HH = CPLbool('-',CPL_base,CPL_screw_HH);
+
+SG_plane_TH = SGofCPLzdelaunayGrid(CPL_base_TH,0.5,1,1);
+SG_plane_TH = SGtrans(SG_plane_TH,[0 0 30]);
+SG_plane_TH = SGfittoSG(SG_plane_TH,SG_object,[0 0 -1],0);
 
 SG_fixed_side = SGofCPLz(CPL_base_TH,thickness/2);
 SG_variable_side_in = SGofCPLz(CPL_base_TH,5);

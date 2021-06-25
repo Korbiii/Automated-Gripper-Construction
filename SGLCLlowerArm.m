@@ -11,10 +11,11 @@ function [SG] = SGLCLlowerArm(varargin)
 
 arm_height_increase = 20;
 angle = 0;
-dof = 'z';
+dof = 'x';
 arm_length = 60;
 servo_name = 'sm40bl';
 attach_dof = 'legacy';
+attach_servo = 'sm85bl';
 
 i_idx = 1;
 while i_idx<=size(varargin,2)
@@ -37,7 +38,7 @@ while i_idx<=size(varargin,2)
 			i_idx = i_idx+1;
 		case 'arm_length'
 			arm_length = varargin{i_idx+1};
-		case 'arm_height_increase'
+		case 'arm_H_incr'
 			arm_height_increase = varargin{i_idx+1};
 		case 'angle'
 			angle = varargin{i_idx+1};			
@@ -77,7 +78,8 @@ SG_top_half = SGof2CPLsz(CPL_crossS_2,CPL_crossS_3,0.33*arm_length,'number','min
 [SG_connection_bottom, CPL_connection] = SGconnAdaptersLCL('adapter_type',attach_dof,'servo',attach_servo);
 
 CPL_crossS_1 = CPLaddauxpoints(CPL_crossS_1,0.5);
-SG_connection_bottom2arm = SGof2CPLsz(CPL_connection,CPL_crossS_1,5);
+CPL_connection = CPLaddauxpoints(CPL_connection,0.5);
+SG_connection_bottom2arm = SGof2CPLsz(CPL_connection,CPL_crossS_1,10),'center';
 
 
 %% Top Servo mount
