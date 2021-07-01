@@ -45,18 +45,38 @@ switch inputStr
 		options = {'Box','Cylinder','Sphere'};
 		inputStr = options{listdlg('ListString',options,'SelectionMode','single','PromptString','Choose what your object resembles')};
 		switch inputStr
-			case 'Box'
+			case options(1)
 				prompt = {'Width of Box:','Depth of Box:','Height of Box:'};
-				output_dlg = inputdlg(prompt);	
-				SG_object = SGbox([output_dlg{1} output_dlg{2} output_dlg{3}]);
-			case 'Cylinder'
+				output_dlg = str2double(inputdlg(prompt));				
+				answer = questdlg('Do you want grip geometry?','Added Geometry','Yes','No','No');
+				switch answer 
+					case 'No'	
+						SG_object = SGbox([output_dlg(1) output_dlg(2) output_dlg(3)]);
+					case 'Yes'	
+						CPL_square = CPLaddauxpoints(PLsquare(output_dlg(1)+0.9,output_dlg(2)+1),5);
+						CPL_remove = CPLatPL(PLcircle(0.5),CPL_square);
+						CPL_square = CPLbool('-',CPL_square,CPL_remove);
+						SG_object = SGofCPLz(CPL_square,output_dlg(3));
+				end				
+			case options(2)
 				prompt = {'Radius of Cylinder:','Height of Cylinder:'};
-				output_dlg = inputdlg(prompt);					
-				SG_object = SGcylinder(str2double(output_dlg{1}),str2double(output_dlg{2}));
-			case 'Sphere'
+				output_dlg = str2double(inputdlg(prompt));
+				
+				answer = questdlg('Do you want grip geometry?','Added Geometry','Yes','No','No');
+				switch answer 
+					case 'No'	
+						SG_object = SGcylinder(output_dlg(1),output_dlg(2));
+					case 'Yes'	
+						CPL_circle = CPLaddauxpoints(PLcircle(output_dlg(1)+0.9),5);
+						CPL_remove = CPLatPL(PLcircle(0.5),CPL_circle);
+						CPL_circle = CPLbool('-',CPL_circle,CPL_remove);
+						SG_object = SGofCPLz(CPL_circle,output_dlg(2));
+				end			
+			case options(3)
 				prompt = {'Radius of Sphere:'};
-				output_dlg = inputdlg(prompt);					
-				SG_object = SGsphere(str2double(output_dlg{1}));
+				output_dlg = str2double(inputdlg(prompt));					
+				SG_object = SGsphere(output_dlg(1));
+	
 			otherwise
 				error("WRONG INPUT");
 		end
@@ -186,6 +206,7 @@ end
 end
 
 function [SG_final] = placeObject(SG_object)
+factor = 1;
 H_Base_frame = [rotz(90) [0;0;0]; 0 0 0 1];
 SG_base_box = SGbox(0.1);
 SG_base_box = SGTset(SG_base_box,'BaseBox',H_Base_frame);
@@ -202,7 +223,7 @@ inputStr = gripper_options{listdlg('ListString',gripper_options,'SelectionMode',
 [SG_gripper_sil,SG_grippers,~,inputsO,inputsG] = SGendeffectors(inputStr);
 SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
 SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-
+SG_grippers.alpha = 0.9;
 close all;
 Help_string = "V: Change view" + newline + "Object:   ";
 for h = 1:size(inputsO,1)	
@@ -218,6 +239,7 @@ for h = 1:size(inputsG,1)
 end
 Help_string = Help_string + newline + "X : Confirm Position";
 Help_string = Help_string + newline + "T : Toggle Annotation";
+Help_string = Help_string + newline + "F/G : Increase Decrease Factor";
 SGfigure;
 f_anno = SGfigureannotation(Help_string,'y',10,0.75);
 
@@ -242,9 +264,9 @@ while true
 	end	
 	for k=1:size(inputsO,1)
 		if in == inputsO{k,3}
-			SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},inputsO{k,2});
+			SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},inputsO{k,2}*factor);
 		elseif in == inputsO{k,4}
-			SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},-inputsO{k,2});
+			SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},-inputsO{k,2}*factor);
 		end
 	end
 	
@@ -259,7 +281,9 @@ while true
 		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
 		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
 	end	
-	if in == 118; view_switch = ~view_switch; end		
+	if in == 118; view_switch = ~view_switch; end	
+	if in == 102; factor = factor*2; end
+	if in == 103; factor = factor/2; end
 	if in == 116
 		if t_anno == 1			
 			delete(f_anno);
@@ -270,7 +294,8 @@ while true
 	end		
 	
 	patch = findall(gcf, 'Tag', 'gripper');
-	delete(patch);
+	delete(patch);	
+	SG_grippers.alpha = 0.9;
 	gripper = SGplot(SG_grippers);
 	gripper.Tag = 'gripper';
 	
@@ -327,8 +352,8 @@ while true
 			x_diff = CPL_out(:,1)-p(1);
 			y_diff = CPL_out(:,2)-p(2);
 			
-			idx_x = find(abs(x_diff)<10);
-			idx_y = find(abs(y_diff)<10);
+			idx_x = find(abs(x_diff)<2);
+			idx_y = find(abs(y_diff)<2);
 			
 			if ~isempty(idx_x)
 				p(1) = CPL_out(idx_x(1),1);

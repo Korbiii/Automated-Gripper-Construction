@@ -1,5 +1,5 @@
 function [SG] = SGfittoSG(SG,SG2fit,dir,stop_value)
-idx = ismembertol(SG.VL(:,3),min(SG.VL(:,3)));
+idx = ismembertol(SG.VL(:,2),min(SG.VL(:,2)));
 idx = find(idx == 1);
 for i=1:size(idx,1)
 	cp = crosspointVLFL2(SG2fit.VL,SG2fit.FL,SG.VL(idx(i),:),dir);

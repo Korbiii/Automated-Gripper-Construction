@@ -4,9 +4,10 @@ adapter_type = 'rotLock';
 width_holder = 50;
 height_holder = 50;
 thickness = 50;
+output = 0;
 
-inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
-inputsGripper = {'width',50,2,43,45;'height',50,3,104,106;'thickness',30,2,107,108};
+inputsObject = {'transx',1,52,54;'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,113,101;'rotx',pi/2,97,100};
+inputsGripper = {'width',50,2,43,45;'height',50,3,104,106;'thickness',50,2,107,108};
 
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -42,6 +43,8 @@ while i_idx<=size(varargin,2)
 		case 'conn_servo'
 			SG_object = varargin{i_idx+1};		
 			i_idx = i_idx+1;	
+		case 'output'
+			output = 1;
 	end
 	i_idx = i_idx+1;
 end
@@ -79,9 +82,9 @@ if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_main_body,'alignTz',{'ObjectPos','ObjectPos'});	
 	
 	SG_fixed_side = SGslicebool(SG_fixed_side,SG_object);
-	SG_variable_side = SGslicebool(SG_variable_side,SG_object);	
-	
-	SG_main_body = SGcatF(SG_fixed_side,SG_variable_side);
+	SG_variable_side = SGslicebool(SGtransrelSG(SG_variable_side,'','rotx',-pi/2),SGtransrelSG(SG_object,'','rotx',-pi/2));	
+	SG_main_body = SGcatF(SG_fixed_side,SG_variable_side);	
+	SG_variable_side = SGtransrelSG(SG_variable_side,'','rotx',pi/2);	
 end
 
 [SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type',adapter_type,'servo',servo_name,'cable',0);
@@ -96,6 +99,7 @@ T_Connection_bot = [rotx(0) [0;0;height_max]; 0 0 0 1];
 SG_base = SGTset(SG_base,'GripperT',T_Connection_bot);
 
 SG_complete = SGstack('z',SG_connector,SG_connection,SG_main_body);
+SG_fixed_side = SGstack('z',SG_connector,SG_connection,SG_fixed_side);
 
 height_max = max(SG_complete.VL(:,3));
 T_Object = [rotx(0) [0;0;height_max]; 0 0 0 1];
@@ -110,6 +114,10 @@ if nargout == 0
 	SGplot(SG_complete);
 	SGwriteSTL(SG_complete);
 	SGwriteSTL(SG_base);
+end
+if output == 1
+	SGwriteSTL(SG_variable_side);
+	SGwriteSTL(SG_fixed_side);
 end
 SG_main_body.alpha = 0.85;
 
