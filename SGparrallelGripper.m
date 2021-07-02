@@ -17,15 +17,16 @@ function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGrip
 clf;
 tol=0.5;
 thread_length = 12;
-printhelp =1;
+printhelp =0;
 servo_name = 'sm40bl';
 conn_type  = 'rotLock';
 
 jaw_th = 5;
+jaw_H = 40;
 opening = 40;
 
 inputsObject = {'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
-inputsGripper = {'jaw_th',5,1,43,45;'opening' 20 2 29 28};
+inputsGripper = {'jaw_th',jaw_th,1,43,45;'opening' opening 2 29 28;'jaw_H',jaw_H,1,104,106};
 
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -39,7 +40,7 @@ if ~isempty(varargin)
 	end
 end
 
-
+output = 1;
 SG_object = [];
 i_idx = 1;
 while i_idx<=size(varargin,2)
@@ -52,6 +53,8 @@ while i_idx<=size(varargin,2)
 			SG_object = varargin{i_idx+1};
 		case 'jaw_th'
 			jaw_th = max(jaw_th,varargin{i_idx+1});
+		case 'jaw_H'
+			jaw_H = max(jaw_H,varargin{i_idx+1});
 		case 'opening'
 			opening = varargin{i_idx+1};	
 		case 'conn_type'
@@ -168,8 +171,11 @@ SG_main_body = SGTset(SG_main_body,'GripperT',H_Gripper_pos);
 
 %% Insert to close up servo
 CPL_insert = CPLbuffer(CPL_big_dove,-0.2);
-CPL_insert = CPLbool('x',CPL_insert,PLcircle(main_R));
-SG_insert = SGofCPLz(CPL_insert,36.5);
+CPL_insert_bot = CPLbool('x',CPL_insert,PLcircle(main_R));
+CPL_insert_top = CPLbool('x',CPL_insert,PLcircle(main_R-2));
+SG_insert = SGofCPLz(CPL_insert_bot,34.5);
+SG_insert_top = SGof2CPLsz(CPL_insert_bot,CPL_insert_top,2);
+SG_insert = SGstack('z',SG_insert,SG_insert_top);
 SG_insert = SGtransrelSG(SG_insert,SG_main_body,'aligntop',-10);
 %% Gear to drive gearracks
 
@@ -207,7 +213,7 @@ SG_gripper_guide = SGcat(SG_gripper_guide,SG_gear_rack);
 
 CPL_gripper_act = PLsquare(2*(out+2.2+9),10);
 CPL_gripper_attach_dov = CPLbool('+',PLsquare(6,6,3),VLswapX(PLsquare(6,6,3)));
-CPL_gripper_attach_dov = CPLbool('+',CPL_gripper_attach_dov,PLtrans(PLsquare(6,1),[0 -3.5]));
+CPL_gripper_attach_dov = CPLbool('+',CPL_gripper_attach_dov,PLtrans(PLsquare(6,3),[0 -3.5]));
 CPL_gripper_attach_dov = PLtrans(CPL_gripper_attach_dov,[-15 -2]);
 CPL_gripper_attach_dov = CPLbool('+',CPL_gripper_attach_dov,VLswapX(CPL_gripper_attach_dov));
 CPL_gripper_act_dov = CPLbool('-',CPL_gripper_act,CPL_gripper_attach_dov);
@@ -252,12 +258,24 @@ SG_stop= SGcat(SG_stop_top,SG_stop_bot);
 CPL_jaws = PLsquare(opening+2*(jaw_th),2*(out+2.2+9));
 CPL_jaws = CPLbool('-',CPL_jaws,PLsquare(opening,2*(out+2.2+9)));
 
-CPL_jaw_dovs = PLtransR(CPLbuffer(CPL_gripper_attach_dov,-0.25),rot(pi/2));
-CPL_jaw_dovs = PLtrans(PLtrans0(CPL_jaw_dovs),[-3.2-(opening/2)-jaw_th 0]);
+SG_jaws_bottom = SGofCPLz(CPL_jaws,5);
+
+CPL_jaws_top = PLsquare(opening+2*(jaw_th+10),2*(out+2.2+9));
+CPL_jaws_top = CPLbool('-',CPL_jaws_top,PLsquare(opening,2*(out+2.2+9)));
+SG_jaws_top = SGofCPLz(CPL_jaws_top,jaw_H-30);
+
+CPL_jaw_dovs = PLtransR(CPLbuffer(CPL_gripper_attach_dov,-0.35),rot(pi/2));
+CPL_jaw_dovs = PLroundcorners(CPL_jaw_dovs,[4,5,11,12],1);
+
+
+CPL_jaw_dovs = PLtrans(PLtrans0(CPL_jaw_dovs),[-2.5-(opening/2)-jaw_th 0]);
 CPL_jaw_dovs = CPLbool('+',CPL_jaw_dovs,VLswapX(CPL_jaw_dovs));
 
 CPL_jaws = CPLbool('+',CPL_jaws,CPL_jaw_dovs);
-SG_gripper_attachment = SGtrans0(SGofCPLz(CPL_jaws,30));
+SG_jaws = SGofCPLz(CPL_jaws,25);
+
+SG_gripper_attachment = SGstack('z',SG_jaws_bottom,SG_jaws,SG_jaws_top);
+SG_gripper_attachment = SGtrans0(SG_gripper_attachment);
 
 H_Object = [rotx(0) [0;0;0]; 0 0 0 1];
 SG_gripper_attachment = SGTset(SG_gripper_attachment,'ObjectPos',H_Object);
@@ -266,7 +284,7 @@ H_Gripper_pos = [rotx(0) [0;0;height-3]; 0 0 0 1];
 SG_gripper_attachment = SGTset(SG_gripper_attachment,'GripperT',H_Gripper_pos);
 
 
-SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignTz',{'GripperT','GripperT'});
+SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignTz',{'GripperT','GripperT'},'transz',10);
 
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_gripper_attachment,'alignTz',{'ObjectPos','ObjectPos'});	
@@ -277,21 +295,28 @@ end
 SG_gripper_attachment.alpha = 0.75;
 % SG_gripper_attachment_ = SGanalyzeGroupParts(SG_gripper_attachment);
 
-%%
+%% STLs
+if output
+	SGwriteSTL(SG_main_body,'Main Body');
+	SGwriteSTL(SGtransrelSG(SG_gripper_attachment,'','rotx',pi),'Gripper Jaws');
+	SGwriteSTL(SG_gear,'Middle Gear');
+	SGwriteSTL(SGtransrelSG(SG_stop,'','rotx',pi/2),'SG_stop');
+	SGwriteSTL(SG_grippers,'Grippers');	
+	SGwriteSTL(SG_insert,'Insert');
+	
+end
 
-
-
+%% Plots
 SG_gripper_body = SGcatF(SG_main_body,SGontop(SG_grippers_mir,SG_main_body,-10));
-SG_final = SGcat(SG_gripper_body,SG_gripper_attachment,SG_gear);
+SG_final = SGcat(SG_gripper_body,SG_insert);
 if nargout== 0
 	clf;
     SGplot(SG_final);	
 	SG_stops = SGtransrelSG(SG_stop,SG_grippers_mir,'alignfront',5,'under',-38);
 	SG_stops = SGcat(SG_stops,SGmirror(SGmirror(SG_stops,'yz'),'xz'));
-	SGplot(SG_stops);
-% 	SGplot(SG_insert);
 end
-% SGwriteSTL(SG_grippers);
-% SGplot(SG_main_body);
+
+
+
 
 end

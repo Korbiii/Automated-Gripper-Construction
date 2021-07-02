@@ -107,6 +107,7 @@ SG_complete = SGTset(SG_complete,'GripperT',H_GripperPos);
 if nargout == 0
 	clf;
 	SGplot(SG_complete);
+	SGwriteSTL(SG_complete);
 end
 SG_main_body.alpha = 0.45;
 

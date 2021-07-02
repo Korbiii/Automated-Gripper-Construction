@@ -27,7 +27,7 @@ while i_idx<=size(varargin,2)
 		case 'dof'
 			dof = varargin{i_idx+1};
 			i_idx = i_idx+1;		
-		case 'servo_name'
+		case 'servo'
 			servo_name = varargin{i_idx+1};
 			i_idx = i_idx+1;
 		case 'attach_servo'

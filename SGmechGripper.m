@@ -28,10 +28,11 @@ if ~isempty(varargin)
 		end
 	end
 end
-output=0;
+output=1;
 SG_object = [];
 
 i_idx = 1;
+axle_lengths =[];
 while i_idx<=size(varargin,2)
 	if ~ischar(varargin{i_idx})
 		i_idx = i_idx+1; 
@@ -83,7 +84,8 @@ mid_slot = 2*(servo.connect_screw_circle_R+servo.connect_screw_R);
 %% MAINBODY
 
 
-CPL_main = PLcircle(main_R);
+CPL_main = PLcircle(main_R,'','',main_R-5);
+CPL_main_top = CPLconvexhull([PLroundcorners(PLsquare(2*(main_R+14.25),36),[1,2,3,4],4);CPL_main]);
 
 [SG_connector,CPL_connection] = SGconnAdaptersLCL('servo',servo_name,'adapter_type',conn_type,'cable',0);
 
@@ -114,7 +116,7 @@ CPL_spring_guides = CPLbool('+',CPL_spring_guides,VLswapX(CPL_spring_guides));
 
 
 CPL_path_lock_guide = [-main_R/2 -(mid_slot/2)-path_depth;-(main_R/2)+2 -main_R;(main_R/2)-2 -main_R;main_R/2 -(mid_slot/2)-path_depth];
-CPL_path_lock_guide = CPLbool('+',CPL_path_lock_guide,VLswapY(CPL_path_lock_guide));
+% CPL_path_lock_guide = CPLbool('+',CPL_path_lock_guide,VLswapY(CPL_path_lock_guide));
 
 CPL_path_slots = PLsquare(main_R-5,mid_slot+2*path_depth);
 
@@ -123,18 +125,21 @@ CPL_path_slot_stops = CPLbool('+',CPL_path_slot_stops,VLswapY(CPL_path_slot_stop
 SG_path_slot_stops = SGofCPLz(CPL_path_slot_stops,main_R-5);
 
 
+CPL_cutout = CPLbool('+',CPL_mid_slot,CPL_plunger_guide);
+CPL_cutout = CPLbool('+',CPL_cutout,CPL_spring_guides);
+CPL_cutout = CPLbool('+',CPL_cutout,CPL_path_lock_guide);
 
-CPL_body = CPLbool('-',CPL_main,CPL_mid_slot);
-CPL_body = CPLbool('-',CPL_body,CPL_plunger_guide);
-CPL_body = CPLbool('-',CPL_body,CPL_spring_guides);
-CPL_body = CPLbool('-',CPL_body,CPL_path_lock_guide);
+CPL_body = CPLbool('-',CPL_main,CPL_cutout);
+CPL_body_top = CPLbool('-',CPL_main_top,CPL_cutout);
 
-CPL_top = CPL_body;
+CPL_top = CPL_body_top;
 CPL_body = CPLbool('-',CPL_body,CPL_path_slots);
+CPL_body_top =  CPLbool('-',CPL_body_top,CPL_path_slots);
 
-SG_main_body = SGofCPLz(CPL_body,main_H);
+SG_main_body = SGof2CPLsz(CPLaddauxpoints(CPL_body,0.5),CPLaddauxpoints(CPL_body_top,0.5),main_H,'angle','miny');
 SG_path_slot_stops = SGtransrelSG(SG_path_slot_stops,SG_main_body,'rotx',pi/2,'rotz',pi/2,'centerx','aligntop');
-SG_path_slot_stops = SGcat(SG_path_slot_stops,SGmirror(SG_path_slot_stops,'xz'));
+% SG_path_slot_stops = SGcat(SG_path_slot_stops,SGmirror(SG_path_slot_stops,'xz'));
+SG_path_slot_stops = SGmirror(SG_path_slot_stops,'xz');
 SG_main_body = SGcat(SG_main_body,SG_path_slot_stops);
 SG_top_main_body = SGofCPLz(CPL_top,7);
 
@@ -166,7 +171,8 @@ SG_main_body = SGTset(SG_main_body,'path',T_Mainbody);
 SG_main_body = SGstack('z',SG_connector,SG_2main_connection,SG_main_body,SG_top_main_body);
 
 
-CPL_gripper_attach_arms = CPLconvexhull([PLtrans(PLcircle(axle_oR),[gripper_attach_R gripper_attach_H]);x (main_H+7);x 0]);
+
+CPL_gripper_attach_arms = CPLconvexhull([PLtrans(PLcircle(axle_oR),[gripper_attach_R gripper_attach_H]);x (main_H+14);x+20 (main_H+14)]);
 CPL_gripper_attach_arms = CPLbool('-',CPL_gripper_attach_arms,PLtrans(PLcircle(axle_R),[gripper_attach_R gripper_attach_H]));
  
 SG_gripper_attach_arm = SGofCPLz(CPL_gripper_attach_arms,5);
@@ -174,7 +180,29 @@ SG_gripper_attach_arm = SGtransrelSG(SG_gripper_attach_arm,SG_main_body,'rotx',p
 SG_gripper_attach_arm = SGcat(SG_gripper_attach_arm,SGmirror(SG_gripper_attach_arm,'xz'));
 SG_gripper_attach_arm = SGcat(SG_gripper_attach_arm,SGmirror(SG_gripper_attach_arm,'yz'));
 
-SG_main_body = SGcat(SG_main_body,SG_gripper_attach_arm);
+CPL_gripper_stabi = CPLbool('-',CPL_main_top,PLsquare(5000,30));
+CPL_gripper_stabi = CPLbool('x',CPL_gripper_stabi,[x -5000;x 5000;5000 5000;5000 -5000]);
+CPL_gripper_stabi = CPLbool('x',CPL_gripper_stabi,[0 0;5000 0;5000 5000;0 5000]);
+CPL_gripper_stabi_top = PLtrans(CPLbool('-',PLsquare(14,30.1),PLsquare(14,30)),[gripper_attach_R-2.5 0]);
+CPL_gripper_stabi_top = CPLbool('x',CPL_gripper_stabi_top,[0 0;5000 0;5000 5000;0 5000]);
+
+SG_gripper_stabi = SGof2CPLsz(CPLaddauxpoints(CPL_gripper_stabi,0.5),CPL_gripper_stabi_top,28,'number','miny');
+SG_gripper_stabi = SGcat(SG_gripper_stabi,SGmirror(SG_gripper_stabi,'xz'));
+SG_gripper_stabi = SGcat(SG_gripper_stabi,SGmirror(SG_gripper_stabi,'yz'));
+
+SG_gripper_stabi = SGtransrelSG(SG_gripper_stabi,SG_main_body,'ontop');
+
+CPL_gripper_stabi_mid = CPLbool('x',CPL_body_top,PLsquare(5000,20));
+CPL_gripper_stabi_mid = CPLbool('x',CPL_gripper_stabi_mid,[x 5000;5000 5000;5000 -5000;x -5000]);
+
+CPL_gripper_stabi_mid_top = CPLbool('x',CPLbuffer(CPL_gripper_stabi_mid,2),PLsquare(5000,20));
+CPL_gripper_stabi_mid_top = CPLbool('-',CPL_gripper_stabi_mid_top,PLsquare(2*(main_R+13.25),20));
+SG_gripper_stabi_mid = SGof2CPLsz(CPLaddauxpoints(CPL_gripper_stabi_mid,0.5),CPL_gripper_stabi_mid_top,5,'angle');
+SG_gripper_stabi_mid = SGcat(SG_gripper_stabi_mid,SGmirror(SG_gripper_stabi_mid,'yz'));
+
+SG_gripper_stabi_mid = SGtransrelSG(SG_gripper_stabi_mid,SG_main_body,'ontop');
+
+SG_main_body = SGcat(SG_main_body,SG_gripper_attach_arm,SG_gripper_stabi,SG_gripper_stabi_mid);
 
 H_b = [rotz(180) [0;0;0]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'B',H_b);
@@ -186,6 +214,12 @@ SG_main_body = SGTset(SG_main_body,'F1',H_f);
 
 H_f = [rotx(90)*rotz(40)*roty(180) [-gripper_attach_R;0;mZ-axle_oR]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'F2',H_f);
+
+%% INSERT
+CPL_insert_bottm = CPLbool('x',CPL_main,CPL_path_lock_guide);
+CPL_insert_top = CPLbool('x',CPL_main_top,CPL_path_lock_guide);
+SG_insert = SGof2CPLsz(CPLaddauxpoints(CPL_insert_bottm,0.5),CPLaddauxpoints(CPL_insert_top,0.5),main_H+7,'center');
+SGwriteSTL(SG_insert);
 %% PLUNGER
 
 CPL_plunger_guide_male = [CPL_mid_slot(3,:);x y;x 0;CPL_mid_slot(3,1) 0];
@@ -253,7 +287,7 @@ SG_middle_bridge = SGtransrelSG(SG_connection_bridge,SG_plunger,'rotx',pi/2,'ont
 SG_plunger = SGcat(SG_plunger,SG_middle_bridge);
 
 max_H_plunger = max(SG_plunger.VL(:,3));
-H_Gripper_pos = [rotx(0) [0;0;max_H_plunger]; 0 0 0 1];
+H_Gripper_pos = [rotx(180) [0;0;max_H_plunger]; 0 0 0 1];
 SG_plunger = SGTset(SG_plunger,'GripperT',H_Gripper_pos);
 
 T_conrod_pos = [rotx(90) [0;0;max_H_plunger-25]; 0 0 0 1];
@@ -280,7 +314,7 @@ SG_pin =SGofCPLz(CPL_pin,path_depth-1);
 SG_pin_chamfer =SGof2CPLsz(CPL_pin,CPL_pin_chamfer,1);
 SG_pin_chamfer_2 =SGof2CPLsz(CPL_pin_chamfer,CPL_pin,1);
 
-SG_path_conrod = SGstack('z',SG_pin_chamfer_2,SG_pin,SG_outside,SG_outside_mid,SG_outside,SG_pin,SG_pin_chamfer);
+SG_path_conrod = SGstack('z',SG_outside,SG_outside_mid,SG_outside,SG_pin,SG_pin_chamfer);
 SG_path_conrod = SGtransrelSG(SG_path_conrod,'','centerz');
 T_pos_frame_path = [roty(0) [0;length_rod;0]; 0 0 0 1];
 SG_path_conrod = SGTset(SG_path_conrod,'conrod',T_pos_frame_path);
@@ -402,10 +436,6 @@ SG_lower_attachment = SGTset(SG_lower_attachment,'ObjectPos',H_Object);
 
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_lower_attachment,'alignTz',{'ObjectPos','ObjectPos'});
-	
-% 	SG_gripper_left = SGbool3('-',SG_gripper_left,SG_object);
-% 	SG_gripper_right = SGbool3('-',SG_gripper_right,SG_object);	
-% 	SG_lower_attachment = SGbool3('-',SG_lower_attachment,SG_object);
 	SG_gripper_left= SGslicebool(SG_gripper_left,SG_object);
 	SG_gripper_right = SGslicebool(SG_gripper_right,SG_object);
 	SG_lower_attachment=SGslicebool(SG_lower_attachment,SG_object);
@@ -424,7 +454,6 @@ SG_gripper_attachment.alpha = 0.75;
 
 SGs = {SG_main_body,SG_gripper,SG_connector_PG};
 fc = SGTframeChain(1,[1 'F1' 2 'B' 2 'F' 3 'B' 1 'F2' 2 'B' 4 'F' 3 'B']);
-
 SGc = SGTchain(SGs,0,'',fc);
 SGc = SGcat(SGc);
 
@@ -435,19 +464,23 @@ SG_path = SGtransrelSG(SG_path,SGc,'alignT',{'path','path'});
 
 
 SG = SGcatF(SGc,SG_plunger,SG_path);
+%%STLS
 
+if output == 1
+    SGwriteSTL(SG_main_body,'Main Body');
+    SGwriteSTL(SG_plunger,'Plunger');
+    SGwriteSTL(SGtransrelSG(SG_path,'','rotx',-pi/2),'Path');
+    SGwriteSTL(SGtransrelSG(SG_path_conrod,'','rotx',pi/2),'Con Rod');
+    SGwriteSTL(SG_gripper,'Gripper');
+    SGwriteSTL(SG_connector_PG,'Connector');
+    SGwriteSTL(SG_insert,'Insert');
+    SGwriteSTL(SG_gripper_attachment,'Attachments');
+end
 
 %% PLOTS
 
-if output
-	SGwriteSTL(SG_gripper_left);
-	SGwriteSTL(SG_gripper_right);
-	SGwriteSTL(SG_lower_attachment);
-end
-
 
 SG_final = SGcatF(SG,SG_gripper_attachment);
-
 if nargout == 0
 	clf;
 	SGplot(SG_final);

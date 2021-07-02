@@ -39,7 +39,7 @@ conn_type  = 'rotLock';
 
 
 %% Default variables
-output = 0;
+output = 1;
 axle_lengths =[];
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -630,8 +630,9 @@ SG_bb_top = SGTset(SG_bb_top,'F',H_f);
 
 
 %% STLWRITE
+
 if output == 1
-    SGwriteSTL(SGtransrelSG(SG_main_body,'','roty',pi),'Main Body','hallu');
+    SGwriteSTL(SGtransrelSG(SG_main_body,'','roty',pi),'Main Body');
     SGwriteSTL(SG_lid,'Lid for Main Body');	
     SGwriteSTL(SGtransrelSG(SG_lower_finger,'','roty',-pi/2),'Lower finger');
     SGwriteSTL(SGtransrelSG(SG_finger_top,'','roty',pi/2),'Finger tip');
@@ -645,8 +646,6 @@ if output == 1
 	SGwriteSTL(SGarrangeSG(SGaxle(axle_R,axle_lengths)),'Axles');
 	SGwriteMultipleSTL(SGaxle(axle_R,axle_lengths),'Axles');
 end
-
-
 
 %% Plots
 SG_lower_finger.alpha = 0.45;
@@ -713,7 +712,7 @@ SG_final = SG_gripper_sil;
 SG_grippers= SG_main_body;
 SG_grippers.alpha = 0;
 
-
+SGwriteSTL(SG_final);
 
 end
 
