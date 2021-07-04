@@ -11,7 +11,7 @@ function [SG] = SGLCLlowerArm(varargin)
 
 arm_height_increase = 20;
 angle = 0;
-dof = 'x';
+dof = 'z';
 arm_length = 60;
 servo_name = 'sm40bl';
 attach_dof = 'legacy';

@@ -25,7 +25,7 @@ jaw_th = 5;
 jaw_H = 40;
 opening = 40;
 
-inputsObject = {'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
+inputsObject = {'transz',2,30,31;'transy',2,52,54;'transx',2,50,56;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
 inputsGripper = {'jaw_th',jaw_th,1,43,45;'opening' opening 2 29 28;'jaw_H',jaw_H,1,104,106};
 
 if ~isempty(varargin)
@@ -164,7 +164,7 @@ SG_2main_connection = SGof2CPLsz(CPL_connection,CPL_main_bottom_layer,10);
 SG_main_body = SGstack('z',SG_connector,SG_2main_connection,SG);
 
 height = max(SG_main_body.VL(:,3));
-H_Gripper_pos = [rotz(90) [0;0;height]; 0 0 0 1];
+H_Gripper_pos = [rotz(90)*rotx(180) [0;0;height]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'GripperT',H_Gripper_pos);
 
 

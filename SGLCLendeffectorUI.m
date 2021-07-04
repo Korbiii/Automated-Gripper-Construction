@@ -222,8 +222,8 @@ inputStr = gripper_options{listdlg('ListString',gripper_options,'SelectionMode',
 
 [SG_gripper_sil,SG_grippers,~,inputsO,inputsG] = SGendeffectors(inputStr);
 SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
-SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
-SG_grippers.alpha = 0.9;
+SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
+% SG_grippers.alpha = 0.95;
 close all;
 Help_string = "V: Change view" + newline + "Object:   ";
 for h = 1:size(inputsO,1)	
@@ -279,7 +279,7 @@ while true
 			[SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG);
 		end
 		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
-		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignTz',{'GripperT','GripperT'});
+		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
 	end	
 	if in == 118; view_switch = ~view_switch; end	
 	if in == 102; factor = factor*2; end
@@ -295,7 +295,7 @@ while true
 	
 	patch = findall(gcf, 'Tag', 'gripper');
 	delete(patch);	
-	SG_grippers.alpha = 0.9;
+% 	SG_grippers.alpha = 0.9;
 	gripper = SGplot(SG_grippers);
 	gripper.Tag = 'gripper';
 	
