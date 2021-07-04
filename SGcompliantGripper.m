@@ -39,7 +39,7 @@ conn_type  = 'rotLock';
 
 
 %% Default variables
-output = 1;
+output = 0;
 axle_lengths =[];
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')

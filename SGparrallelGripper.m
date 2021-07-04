@@ -14,7 +14,7 @@
 %	 inputsObject:			Input array for object manipulation
 %	 inputsGripper:			Input array for gripper manipulation
 function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGparrallelGripper(varargin)
-clf;
+
 tol=0.5;
 thread_length = 12;
 printhelp =0;
@@ -40,7 +40,7 @@ if ~isempty(varargin)
 	end
 end
 
-output = 1;
+output = 0;
 SG_object = [];
 i_idx = 1;
 while i_idx<=size(varargin,2)
@@ -292,7 +292,6 @@ if ~isempty(SG_object)
 end
 
 
-SG_gripper_attachment.alpha = 0.75;
 % SG_gripper_attachment_ = SGanalyzeGroupParts(SG_gripper_attachment);
 
 %% STLs

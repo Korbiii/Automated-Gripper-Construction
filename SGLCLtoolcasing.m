@@ -75,7 +75,7 @@ T_Object = [rotx(0) [0;0;height_max]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'ObjectPos',T_Object);
 
 height_min = min(SG_main_body.VL(:,3));
-T_connection_top = [rotx(0) [0;0;height_min]; 0 0 0 1];
+T_connection_top = [rotx(180) [0;0;height_min]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'GripperT',T_connection_top);
 
 if ~isempty(SG_object)
@@ -119,7 +119,6 @@ if output == 1
 	SGwriteSTL(SG_variable_side);
 	SGwriteSTL(SG_fixed_side);
 end
-SG_main_body.alpha = 0.85;
 
 
 end

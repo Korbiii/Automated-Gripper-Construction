@@ -20,8 +20,8 @@ width_holder = 50;
 length_holder = 50;
 height_holder = 50;
 
-inputsObject = {'transx',1,52,54;'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,113,101;'rotx',pi/2,97,100};
-inputsGripper = {'width',50,2,43,45;'height',20,3,104,106;'length',40,3,107,108};
+inputsObject = {'transx',1,52,54;'transy',1,29,28;'transz',1,30,31;'roty',pi/2,115,119;'rotz',pi/2,113,101;'rotx',pi/2,97,100};
+inputsGripper = {'width',width_holder,2,43,45;'height',height_holder,3,104,106;'length',length_holder,3,107,108};
 
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -91,7 +91,7 @@ SG_connection = SGof2CPLsz(CPL_connector,CPL_base,10);
 SG_base = SGstack('z',SG_connector,SG_connection);
 
 height_max = max(SG_base.VL(:,3));
-T_Connection_bot = [rotx(0) [0;0;height_max]; 0 0 0 1];
+T_Connection_bot = [rotx(180) [0;0;height_max]; 0 0 0 1];
 SG_base = SGTset(SG_base,'GripperT',T_Connection_bot);
 
 SG_complete = SGstack('z',SG_connector,SG_connection,SG_main_body);
