@@ -73,7 +73,7 @@ switch inputStr
 					case 'No'	
 						SG_object = SGcylinder(output_dlg(1)/2,output_dlg(2));
 					case 'Yes'	
-						CPL_circle = CPLaddauxpoints(PLcircle(output_dlg(1)/2+0.9),5);
+						CPL_circle = CPLaddauxpoints(PLcircle((output_dlg(1)/2)+0.35),5);
 						CPL_remove = CPLatPL(PLcircle(0.5),CPL_circle);
 						CPL_circle = CPLbool('-',CPL_circle,CPL_remove);
 						SG_object = SGofCPLz(CPL_circle,output_dlg(2));
@@ -97,6 +97,7 @@ if nargout == 0
 	SGfigure;
 	SGplot(SG);
 	SGwriteSTL(SG);
+	SGwriteSTL(SG_object);
 end
 view(3);
 
@@ -161,6 +162,7 @@ P_adapter.Tag = 'adapter';
 
 P_remix = SGplot(SG_remix);
 P_remix.Tag = 'remix';
+set(gca,'visible','off')
 view(90,0);
 while true		
 	[~,~,in]=myginput(1,'crosshair');
@@ -175,14 +177,16 @@ while true
 		end
 	end
 	if in == 118
-		if view_switch			
+		view_switch = mod(view_switch+1,3);
+		if view_switch==0		
 			inputs = {'transy',1*factor,29,28;'transz',1*factor,30,31;'roty',pi/2*factor,115,119;'rotx',pi/2*factor,113,101;'rotz',pi/2*factor,97,100};			
 			view(90,0);
-		else	
+		elseif view_switch == 1
 			inputs = {'transx',1*factor,29,28;'transy',1*factor,30,31;'roty',pi/2*factor,115,119;'rotx',pi/2*factor,113,101;'rotz',pi/2*factor,97,100};
 			view(0,90);
+		elseif view_switch == 2
+			view(45,45);
 		end
-		view_switch = ~view_switch;
 	end		
 	if in == 116
 		if t_anno == 1
@@ -254,24 +258,20 @@ SG_grippers.alpha = 0.5;
 
 close all;
 Help_string = "USE THE FOLLOWING KEYS TO ADJUST OBJECT POSITION AND ENDEFFECTOR GEOMETRY" + newline;
-Help_string = Help_string + "V: Change view" + newline;
-Help_string = Help_string + "F/G: Increase/Decrease Amount of Rotation and Translation " + newline + "Object:   ";
-for h = 1:size(inputsO,1)	
-	key1 = upper(getKeyCharFromASCII(inputsO{h,3}));
-	key2 = upper(getKeyCharFromASCII(inputsO{h,4}));
-	Help_string = Help_string + inputsO{h,1} + ": " + key1+"\"+ key2 + "      ";
-end
-Help_string = Help_string +newline+ "Endeffector:   ";
+Help_string = Help_string + "Move Object: Arrow Keys "+ newline +"    Rotate Object: (x-Axis) A/D (y-Axis) W/S (z-Axis) Q/E";
+Help_string = Help_string +newline+ "Endeffectoroptions:   ";
 for h = 1:size(inputsG,1)
 	key1 = upper(getKeyCharFromASCII(inputsG{h,4}));
 	key2 = upper(getKeyCharFromASCII(inputsG{h,5}));
 	Help_string = Help_string + inputsG{h,1} + ": " + key1+"\"+key2 + "      ";
 end
+Help_string = Help_string + newline + "F/G: Increase/Decrease Amount of Rotation and Translation ";
+Help_string = Help_string + newline +  "V: Change view";
 Help_string = Help_string + newline + "T : Toggle Annotation";
 Help_string = Help_string + newline + "X : Confirm Position";
 SGfigure;
 set(gcf, 'Position',fig_pos);
-f_anno = SGfigureannotation(Help_string,'y',10,1-(120/fig_pos(4)));
+f_anno = SGfigureannotation(Help_string,'y',10,1-(140/fig_pos(4)));
 p_anno = plotannotation({"Rotation: +/- " + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/- " + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
 
 
@@ -286,6 +286,7 @@ object = SGplot(SG_object);
 object.Tag = 'object';
 
 view(90,0);
+set(gca,'visible','off')
 view_switch = 0;
 t_anno = 1;
 while true
@@ -312,9 +313,32 @@ while true
 		end
 		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
 		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
-	end	
-	if in == 118; view_switch = ~view_switch; end	
-		if in == 102
+	end
+	if in == 118
+		view_switch = mod(view_switch+1,3);
+		if view_switch == 0			
+			inputsO(strcmpi(inputsO,'transy')) = {'transz'};
+			inputsO(strcmpi(inputsO,'transx')) = {'transy'};
+			pos_rotx = strcmpi(inputsO,'rotx');
+			pos_roty = strcmpi(inputsO,'roty');
+			inputsO(pos_rotx) = {'roty'};			
+			inputsO(pos_roty) = {'rotx'};
+			inputsO(pos_roty,2) = {-inputsO{pos_roty,2}};
+			view(90,0);
+		elseif view_switch == 1
+			inputsO(strcmpi(inputsO,'transy')) = {'transx'};
+			pos_rotx = strcmpi(inputsO,'rotx');
+			pos_roty = strcmpi(inputsO,'roty');
+			inputsO(pos_roty) = {'rotx'};
+			inputsO(pos_rotx) = {'roty'};
+			inputsO(pos_rotx,2) = {-inputsO{pos_rotx,2}};
+			view(0,0);
+		elseif view_switch == 2
+			inputsO(strcmpi(inputsO,'transz')) = {'transy'};
+			view(45,45);
+		end		
+	end
+	if in == 102
 		delete(p_anno);
 		factor = factor*2;
 		p_anno = plotannotation({"Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
@@ -327,8 +351,10 @@ while true
 	if in == 116
 		if t_anno == 1			
 			delete(f_anno);
-		else			
-			f_anno = SGfigureannotation(Help_string,'y',10,1-(120/fig_pos(4)));
+		else	
+			delete(p_anno);
+			f_anno = SGfigureannotation(Help_string,'y',10,1-(140/fig_pos(4)));
+			p_anno = plotannotation({"Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
 		end		
 		t_anno = ~t_anno;
 	end		
@@ -349,11 +375,7 @@ while true
 	delete(patch);
 	object = SGplot(SG_object);
 	object.Tag = 'object';
-	if view_switch
-		view(3);
-	else
-		view(90,0);
-	end
+	
 	
 end
 inputsG(end+1,:) = {'output',1,'','',''};
@@ -409,6 +431,10 @@ while true
 		view(2);
 	end
 	if in == 1
+		if t_anno
+			delete(f_anno);
+		end
+		delete(f_anno);
 		if ~isempty(CPL_out)
 			x_diff = CPL_out(:,1)-p(1);
 			y_diff = CPL_out(:,2)-p(2);
@@ -429,6 +455,9 @@ while true
 		uistack(hi,'down');
 		axis equal;
 		view(2);
+		if t_anno
+			f_anno=SGfigureannotation("CLICK AROUND THE OUTLINE OF YOUR OBJECT"+ newline +"Z : Remove Last Point"+ newline +"T : Toggle Annotation"+ newline + "X : Confirm Outline",'y',10,1-(80/fig_pos(4)));
+		end
 	end
 end
 

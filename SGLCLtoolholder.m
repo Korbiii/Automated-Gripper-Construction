@@ -20,7 +20,7 @@ width_holder = 50;
 length_holder = 50;
 height_holder = 50;
 
-inputsObject = {'transx',1,52,54;'transy',1,29,28;'transz',1,30,31;'roty',pi/2,115,119;'rotz',pi/2,113,101;'rotx',pi/2,97,100};
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotz',-pi/2,101,113};
 inputsGripper = {'width',width_holder,2,43,45;'height',height_holder,3,104,106;'length',length_holder,3,107,108};
 
 if ~isempty(varargin)

@@ -17,9 +17,9 @@ CPL = [];
 tol = 0.5;
 servo_name = 'sm40bl';
 thread_length = 12;
-dof = 'z';
+dof = 'rotLock';
 
-attach_dof = '';
+attach_dof = 'x';
 attach_servo = 'sm40bl';
 
 print_help_layer = 0;
@@ -320,8 +320,10 @@ switch dof
 		connect_R = 23.5;
 		height = 9.5;
 		
-		CPL_connection_bottom = [connect_R+.5 height;connect_R+.5 3.5;connect_R-.5 5;21 4.5;inner_R+.5 height];
-		CPL_connection_stop = CPLbool('+',CPL_connection_bottom,[connect_R+.5 0;connect_R+.5 height;connect_R-3 height;connect_R-3 0]);
+		CPL_connection_bottom = [connect_R+.55 height;connect_R+.5 5.5;connect_R-.5 5.5;21 5.5;inner_R+1.05 height];
+		CPL_connection_bottom = PLroundcorners(CPL_connection_bottom,5,2);
+		CPL_connection_stop = CPLbool('+',CPL_connection_bottom,[connect_R+.55 0;connect_R+.55 height;connect_R-3 height;connect_R-3 0]);
+		
 		
 		SG_stub = SGofCPLrota(CPL_connection_bottom,(1/4)*pi,false);
 		SG_stub_stop = SGofCPLrota(CPL_connection_stop,0.2,false);
@@ -344,10 +346,7 @@ switch dof
 		SG_main =SGcat(SG_main,SG_main_connections);
 		
 		
-		if print_help
-			SG_help_layer = SGofCPLz(PLcircle(outer_R-0.5),0.2);
-			SG_main = SGcat(SG_main,SGalignbottom(SG_help_layer,SG_main));
-		end
+	
 		
 		SG = SGcat(SG_stubs,SG_main);
 		
@@ -366,7 +365,12 @@ switch dof
 				CPL_bottom = CPLbool('-',CPL_bottom,PLcircle(servo.connect_R));
 				CPL_connector = CPLbool('-',CPL_connector,PLcircle(servo.connect_R));
 			end
-			SG_connection = SGof2CPLsz(CPL_connector,CPL_bottom,10,'center');
+			SG_connection = SGof2CPLsz(CPLaddauxpoints(CPL_connector,0.5),CPL_bottom,10,'center');
+			if print_help
+				SG_help_layer = SGofCPLz(PLcircle(outer_R-0.5),0.2);
+				SG_connection = SGcat(SG_connection,SGaligntop(SG_help_layer,SG_connection));
+			end		
+			
 			SG = SGstack('z',SG_connector,SG_connection,SG);
 		end
 				

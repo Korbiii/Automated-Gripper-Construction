@@ -6,7 +6,7 @@ height_holder = 50;
 thickness = 50;
 output = 0;
 
-inputsObject = {'transx',1,52,54;'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,113,101;'rotx',pi/2,97,100};
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',pi/2,97,100};
 inputsGripper = {'width',50,2,43,45;'height',50,3,104,106;'thickness',50,2,107,108};
 
 if ~isempty(varargin)

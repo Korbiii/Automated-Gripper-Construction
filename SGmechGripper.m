@@ -14,7 +14,7 @@
 function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGmechGripper(varargin)
 gripper_height = 20;
 
-inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
+inputsObject = {'transz',2,30,31;'transy',2,52,54;'transx',2,50,56;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',pi/2,101,113};
 inputsGripper = {'grip_H',gripper_height,2,43,45};
 
 if ~isempty(varargin)
@@ -493,6 +493,9 @@ if output == 1
     SGwriteSTL(SG_connector_PG,'Connector');
     SGwriteSTL(SG_insert,'Insert');
     SGwriteSTL(SG_gripper_attachment,'Attachments');
+    SGwriteSTL(SG_lower_attachment,'BAttachments');
+    SGwriteSTL(SG_gripper_left,'LAttachments');
+    SGwriteSTL(SG_gripper_right,'RAttachments');
 end
 
 %% PLOTS

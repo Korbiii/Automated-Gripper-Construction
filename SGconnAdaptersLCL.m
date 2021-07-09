@@ -13,7 +13,7 @@ function [SG, CPL] = SGconnAdaptersLCL(varargin)
 tol = 0.5;
 servo_name = 'sm40bl';
 screw_length = 12;
-adapter_type = 'legacy';
+adapter_type = 'rotLock';
 cable = 1;
 print_help_layer = 0;
 
@@ -89,7 +89,7 @@ switch adapter_type
 		
 		SG_bracket_w_cut = SGofCPLz(CPL_bracket_w_cut,servo.connect_top_H);
 		SG_bracket = SGof2CPLsz(CPL_bracket,CPL_bracket_small,2);
-		missing_screw_length = screw_length-3 -2 - servo.connect_top_H;
+		missing_screw_length = screw_length-3 -1 - servo.connect_top_H;
 		SG_screw_length = SGof2CPLsz([PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R+missing_screw_length);NaN NaN;CPL_screw_holes],[PLcircle(servo.connect_screw_circle_R+2*servo.connect_screw_R);NaN NaN;CPL_screw_holes],missing_screw_length);
  		
 		SG = SGstack('z',SG_bracket_w_cut,SG_bracket,SG_screw_length);
@@ -118,7 +118,7 @@ switch adapter_type
 		connect_R = 23.5;
 		height = 10;
 		
-		CPL_connection_bottom = [connect_R+.5 height;connect_R+.5 4;connect_R-.5 5;21 5;inner_R+.5 height];
+		CPL_connection_bottom = [connect_R+.55 height;connect_R+.5 4;connect_R-.5 5;21 5;inner_R+.55 height];
 				
 		CPL_main = CPLbool('-',PLcircle(outer_R+2),PLcircle(outer_R));
 		CPL_main_cut = CPLconvexhull([PLcircseg(outer_R+3,'',pi-0.2,pi+1);0 0]);

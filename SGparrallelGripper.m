@@ -25,7 +25,7 @@ jaw_th = 5;
 jaw_H = 40;
 opening = 40;
 
-inputsObject = {'transz',2,30,31;'transy',2,52,54;'transx',2,50,56;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
+inputsObject = {'transz',2,30,31;'transy',2,52,54;'transx',2,50,56;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',pi/2,101,113};
 inputsGripper = {'jaw_th',jaw_th,1,43,45;'opening' opening 2 29 28;'jaw_H',jaw_H,1,104,106};
 
 if ~isempty(varargin)
