@@ -15,7 +15,5 @@ for i=1:size(lengths,2)
 	SG_front = SGof2CPLsz(PLcircle(R-0.2),PLcircle(R-1),1);
 	SG = SGstack('z',SG_back,SG_main_part,SG_front);
 	SGs{end+1} = SG;
-	SGwriteSTL(SG,num2str(lengths(i)));
 end
-
 end

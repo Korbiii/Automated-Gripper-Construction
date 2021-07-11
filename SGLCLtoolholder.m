@@ -104,6 +104,11 @@ height_max = min(SG_complete.VL(:,3));
 H_GripperPos = [rotx(0) [0;0;height_max+20]; 0 0 0 1];
 SG_complete = SGTset(SG_complete,'GripperT',H_GripperPos);
 
+if output
+	fname = SGwriteSTL(SG_complete,"Simple Toolholder");
+	SGsSaveToFolder(fname);
+end
+
 if nargout == 0
 	clf;
 	SGplot(SG_complete);

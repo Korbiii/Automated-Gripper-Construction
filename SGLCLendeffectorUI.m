@@ -104,8 +104,7 @@ if nargout == 0
 	clf;
 	SGfigure;
 	SGplot(SG);
-	SGwriteSTL(SG);
-	VLFLplotlight
+	VLFLplotlight;
 end
 view(3);
 
@@ -242,10 +241,10 @@ SG_object = SGtrans0(SG_object);
 H_Object = [rotx(0) [0;0;0]; 0 0 0 1];
 SG_object = SGTset(SG_object,'Object',H_Object);
 
-[~,~,~,~,~,gripper_options] = SGendeffectors('');
+[~,~,~,~,~,gripper_options] = SGLCLendeffectors('');
 inputStr = gripper_options{listdlg('ListString',gripper_options,'SelectionMode','single','PromptString','Choose what your object resembles','ListSize',dlg_size)};
 
-[SG_gripper_sil,SG_grippers,~,inputsO,inputsG] = SGendeffectors(inputStr);
+[SG_gripper_sil,SG_grippers,~,inputsO,inputsG] = SGLCLendeffectors(inputStr);
 SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
 SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
 SG_grippers = SGcolorfaces(SG_grippers,'g');
@@ -373,7 +372,7 @@ while true
 	end
 	if change
 		try
-			[SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG,'',servo_name,attach_dof,attach_servo);
+			[SG_gripper_sil,SG_grippers] = SGLCLendeffectors(inputStr,inputsG,'',servo_name,attach_dof,attach_servo);
 			SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
 			SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
 		catch
@@ -410,7 +409,7 @@ while true
 	
 end
 inputsG(end+1,:) = {'output',1,'','',''};
-[~,~,SG_final] = SGendeffectors(inputStr,inputsG,SG_object);
+[~,~,SG_final] = SGLCLendeffectors(inputStr,inputsG,SG_object);
 end
 
 function [key_char] = getKeyCharFromASCII(value)

@@ -8,7 +8,7 @@
 %	 inputsO:				Input array for object manipulation
 %	 inputsG:				Input array for gripper manipulation
 %	 gripper_options:		Returns field of existing endeffector options
-function [SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG,gripper_options] = SGendeffectors(endE_nameStr,varargin)
+function [SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG,gripper_options] = SGLCLendeffectors(endE_nameStr,varargin)
 inputs = {}; if nargin>=2 && ~isempty(varargin{1}); inputs=varargin{1}(:,1:2); end
 SG_object = []; if nargin>=3 && ~isempty(varargin{2}); SG_object=varargin{2}; end
 servo_name = 'sm40bl'; if nargin>=4 && ~isempty(varargin{3}); servo_name=varargin{3}; end
@@ -22,33 +22,33 @@ gripper_options = {'Simple Toolholder','Mechanical Gripper','Parallel Gripper','
 switch endE_nameStr
 	case gripper_options(1)
 		if isempty(inputs)
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolholder();
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolHolder();
 		else
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolholder('c_inputs',inputs,'SG_object',SG_object,'conn_type',conn_dof,'conn_servo',conn_servo);
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolHolder('c_inputs',inputs,'SG_object',SG_object,'conn_type',conn_dof,'conn_servo',conn_servo);
 		end
 	case gripper_options(2)
 		if isempty(inputs)
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGmechGripper();
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLgripperPassive();
 		else
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGmechGripper('c_inputs',inputs,'SG_object',SG_object,'conn_type',conn_dof,'conn_servo',conn_servo);
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLgripperPassive('c_inputs',inputs,'SG_object',SG_object,'conn_type',conn_dof,'conn_servo',conn_servo);
 		end
 	case gripper_options(3)
 		if isempty(inputs)
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGparrallelGripper();
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLgripperParrallel();
 		else
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGparrallelGripper('c_inputs',inputs,'SG_object',SG_object,'servo',servo_name,'conn_type',conn_dof,'conn_servo',conn_servo);
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLgripperParrallel('c_inputs',inputs,'SG_object',SG_object,'servo',servo_name,'conn_type',conn_dof,'conn_servo',conn_servo);
 		end
 	case gripper_options(4)
 		if isempty(inputs)
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGcompliantGripper();
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLgripperCompliant();
 		else
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGcompliantGripper('c_inputs',inputs,'servo',servo_name,'conn_type',conn_dof,'conn_servo',conn_servo);
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLgripperCompliant('c_inputs',inputs,'servo',servo_name,'conn_type',conn_dof,'conn_servo',conn_servo);
 		end
 	case gripper_options(5)
 		if isempty(inputs)
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolcasing();
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolCasing();
 		else
-			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolcasing('c_inputs',inputs,'SG_object',SG_object,'conn_servo',servo_name,'conn_type',conn_dof);
+			[SG_gripper_sil,SG_grippers,SG_final,inputsO,inputsG] = SGLCLtoolCasing('c_inputs',inputs,'SG_object',SG_object,'conn_servo',servo_name,'conn_type',conn_dof);
 		end
 	otherwise 
 		disp("Gripper options");

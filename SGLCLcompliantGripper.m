@@ -633,19 +633,20 @@ SG_bb_top = SGTset(SG_bb_top,'F',H_f);
 %% STLWRITE
 
 if output == 1
-    SGwriteSTL(SGtransrelSG(SG_main_body,'','roty',pi),'Main Body');
-    SGwriteSTL(SG_lid,'Lid for Main Body');	
-    SGwriteSTL(SGtransrelSG(SG_lower_finger,'','roty',-pi/2),'Lower finger');
-    SGwriteSTL(SGtransrelSG(SG_finger_top,'','roty',pi/2),'Finger tip');
-    SGwriteSTL(SG_bb_top,'Finger Bone Top');
-    SGwriteSTL(SG_bb_bottom,'Finger Bone Bottom');
-    SGwriteSTL(SGtransrelSG(SG_runner,'','rotx',pi/2),'Horizontal Runner');
-    SGwriteSTL(SGtransrelSG(SG_rod_connections,'','rotx',pi),'Connection Runner motorflansch');	
-    SGwriteSTL(SGtransrelSG(SG_finger2horguide,'','roty',-pi/2),'Finger2Horizontal Runner');	
-    SGwriteSTL(SG_mid_rotator,'Motorflanch');	
-    SGwriteSTL(SGtransrelSG(SG_fl_mid,'','rotx',pi),'Finger Lever');
-	SGwriteSTL(SGarrangeSG(SGaxle(axle_R,axle_lengths)),'Axles');
-	SGwriteMultipleSTL(SGaxle(axle_R,axle_lengths),'Axles');
+	fnames = {};
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_main_body,'','roty',pi),'Main Body');
+	fnames{end+1} = SGwriteSTL(SG_lid,'Lid for Main Body');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_lower_finger,'','roty',-pi/2),'Lower finger');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_finger_top,'','roty',pi/2),'Finger tip');
+	fnames{end+1} = SGwriteSTL(SG_bb_top,'Finger Bone Top');
+	fnames{end+1} = SGwriteSTL(SG_bb_bottom,'Finger Bone Bottom');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_runner,'','rotx',pi/2),'Horizontal Runner');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_rod_connections,'','rotx',pi),'Connection Runner motorflansch');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_finger2horguide,'','roty',-pi/2),'Finger2Horizontal Runner');
+	fnames{end+1} = SGwriteSTL(SG_mid_rotator,'Motorflanch');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_fl_mid,'','rotx',pi),'Finger Lever');
+	fnames{end+1} = SGwriteSTL(SGarrangeSG(SGaxle(axle_R,axle_lengths)),'Axles');
+	SGsSaveToFolder(fnames);
 end
 
 %% Plots
