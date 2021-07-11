@@ -176,11 +176,12 @@ SG_main_body = SGstack('z',SG_connector,SG_2main_connection,SG_main_body,SG_top_
 
 CPL_gripper_attach_arms = CPLconvexhull([PLtrans(PLcircle(axle_oR),[gripper_attach_R gripper_attach_H]);x (main_H+14);x+20 (main_H+14)]);
 CPL_gripper_attach_arms = CPLbool('-',CPL_gripper_attach_arms,PLtrans(PLcircle(axle_R),[gripper_attach_R gripper_attach_H]));
- 
+
 SG_gripper_attach_arm = SGofCPLz(CPL_gripper_attach_arms,5);
 SG_gripper_attach_arm = SGtransrelSG(SG_gripper_attach_arm,SG_main_body,'rotx',pi/2,'transy',-10,'transz',19);
 SG_gripper_attach_arm = SGcat(SG_gripper_attach_arm,SGmirror(SG_gripper_attach_arm,'xz'));
 SG_gripper_attach_arm = SGcat(SG_gripper_attach_arm,SGmirror(SG_gripper_attach_arm,'yz'));
+axle_lengths = [axle_lengths 30 30];
 
 CPL_gripper_stabi = CPLbool('-',CPL_main_top,PLsquare(5000,30));
 CPL_gripper_stabi = CPLbool('x',CPL_gripper_stabi,[x -5000;x 5000;5000 5000;5000 -5000]);
@@ -283,6 +284,7 @@ CPL_connection_bridge_middle = CPLbool('-',CPL_connection_bridge_middle,CPL_mid_
 SG_connectionbridge_mid = SGofCPLz(CPL_connection_bridge_middle,10);
 SG_connectionbridge_outside = SGofCPLz(CPL_connection_bridge_outside,5);
 SG_connection_bridge = SGstack('z',SG_connectionbridge_outside,SG_connectionbridge_mid,SG_connectionbridge_outside);
+axle_lengths = [axle_lengths 20 20];
 
 SG_middle_bridge = SGtransrelSG(SG_connection_bridge,SG_plunger,'rotx',pi/2,'ontop','centery');
 
@@ -310,7 +312,7 @@ SG_outside = SGofCPLz(CPL_outline,2.5);
 
 CPL_outline_mid = CPLbool('x',CPL_outline,PLcircle(length_rod-15));
 SG_outside_mid = SGofCPLz(CPL_outline_mid,10.25);
-
+axle_lengths = [axle_lengths 15.25];
 CPL_pin = PLcircle(2);
 CPL_pin_chamfer = PLcircle(1.5);
 SG_pin =SGofCPLz(CPL_pin,path_depth-1);
@@ -366,6 +368,7 @@ CPL_connector_PG = CPLbool('-',CPL_connector_PG,PLcircle(axle_R));
 CPL_connector_PG = CPLbool('-',CPL_connector_PG,PLtrans(PLcircle(axle_R),[0 length_connector]));
 
 SG_connector_PG = SGofCPLz(CPL_connector_PG,9.5);
+axle_lengths = [axle_lengths 9.5 9.5];
 SG_connector_PG = SGtransrelSG(SG_connector_PG,'','centerz');
 
 H_b = [rotz(180) [0;0;0]; 0 0 0 1];
@@ -487,17 +490,20 @@ SG_gripper_attachment = SGcatF(SG_lower_attachment,SG_gripper_left,SG_gripper_ri
 %%STLS
 
 if output == 1
-    SGwriteSTL(SG_main_body,'Main Body');
-    SGwriteSTL(SG_plunger,'Plunger');
-    SGwriteSTL(SGtransrelSG(SG_path,'','rotx',-pi/2),'Path');
-    SGwriteSTL(SGtransrelSG(SG_path_conrod,'','rotx',pi/2),'Con Rod');
-    SGwriteSTL(SG_gripper,'Gripper');
-    SGwriteSTL(SG_connector_PG,'Connector');
-    SGwriteSTL(SG_insert,'Insert');
-    SGwriteSTL(SG_gripper_attachment,'Attachments');
-    SGwriteSTL(SG_lower_attachment,'BAttachments');
-    SGwriteSTL(SG_gripper_left,'LAttachments');
-    SGwriteSTL(SG_gripper_right,'RAttachments');
+	fnames = {};
+    fnames{end+1} = SGwriteSTL(SG_main_body,'Main Body');
+    fnames{end+1} = SGwriteSTL(SG_plunger,'Plunger');
+    fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_path,'','rotx',-pi/2),'Path');
+    fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_path_conrod,'','rotx',pi/2),'Con Rod');
+    fnames{end+1} = SGwriteSTL(SG_gripper,'Gripper');
+    fnames{end+1} = SGwriteSTL(SG_connector_PG,'Connector');
+    fnames{end+1} = SGwriteSTL(SG_insert,'Insert');
+    fnames{end+1} = SGwriteSTL(SG_gripper_attachment,'Attachments');
+    fnames{end+1} = SGwriteSTL(SG_lower_attachment,'BAttachments');
+    fnames{end+1} = SGwriteSTL(SG_gripper_left,'LAttachments');
+    fnames{end+1} = SGwriteSTL(SG_gripper_right,'RAttachments');
+	fnames{end+1} = SGwriteSTL(SGarrangeSG(SGaxle(axle_R,axle_lengths)),'Axles');	
+	SGsSaveToFolder(fnames);
 end
 
 %% PLOTS

@@ -303,13 +303,14 @@ SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignT'
 
 %% STLs
 if output
-	SGwriteSTL(SG_main_body,'Main Body');
-	SGwriteSTL(SGtransrelSG(SG_gripper_attachment,'','rotx',pi),'Gripper Jaws');
-	SGwriteSTL(SG_gear,'Middle Gear');
-	SGwriteSTL(SGtransrelSG(SG_stop,'','rotx',pi/2),'SG_stop');
-	SGwriteSTL(SG_grippers,'Grippers');	
-	SGwriteSTL(SG_insert,'Insert');
-	
+	fnames ={};
+	fnames{end+1} = SGwriteSTL(SG_main_body,'Main Body');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_gripper_attachment,'','rotx',pi),'Gripper Jaws');
+	fnames{end+1} = SGwriteSTL(SG_gear,'Middle Gear');
+	fnames{end+1} = SGwriteSTL(SGtransrelSG(SG_stop,'','rotx',pi/2),'SG_stop');
+	fnames{end+1} = SGwriteSTL(SG_grippers,'Grippers');	
+	fnames{end+1} = SGwriteSTL(SG_insert,'Insert');
+	SGsSaveToFolder(fnames);
 end
 
 %% Plots

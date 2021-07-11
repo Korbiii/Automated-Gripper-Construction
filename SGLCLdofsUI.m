@@ -2,10 +2,10 @@
 %    === INPUT PARAMETERS ===
 %    === OUTPUT RESULTS ======
 %    
-function [SG] = LCLrobot(varargin)
+function [SG] = SGLCLdofsUI(varargin)
 close all
 fig_pos = [100 100 1280 720];
-
+neutralSGs= [];
 [~,~,dof_options] = SGdofsLCL();
 servo_options = readtable('Servos.xlsx');
 servo_options = table2cell(servo_options(:,1));
@@ -84,6 +84,11 @@ SGs{end+1} = SGdofsLCL('attach_dof',last_dof,'dof','rotLock','attach_servo',last
 SGc = SGTchain(SGs,[phis 0]);
 
 if nargout == 0
+	fnames = {};
+	for i=4:size(SGs,2)		
+		fnames{end+1} = SGwriteSTL(SGs{i},strcat('DoF',num2str(i-2)));		
+	end
+	SGsSaveToFolder(fnames);
 	clf;
 	SGplot(SGc);
 	view(3);

@@ -116,9 +116,11 @@ if nargout == 0
 	SGwriteSTL(SG_complete);
 	SGwriteSTL(SG_base);
 end
-if output == 1
-	SGwriteSTL(SG_variable_side);
-	SGwriteSTL(SG_fixed_side);
+if output
+	fnames = {};
+	fnames{end+1} = SGwriteSTL(SG_variable_side,"Tool Casing Variable Side");
+	fnames{end+1} = SGwriteSTL(SG_fixed_side,"Tool Casing Fixed Side");
+	SGsSaveToFolder(fnames);
 end
 
 
