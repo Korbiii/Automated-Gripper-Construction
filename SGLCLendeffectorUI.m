@@ -11,8 +11,8 @@ options_desc = {'I have an object/tool for which I need a gripper/toolholder','I
 inputStr = options{listdlg('ListString',options_desc,'SelectionMode','single','PromptString','What do you want to do?','ListSize',dlg_size)};
 switch inputStr
 	case 'object'
-		options = {'bsh','img','stl','cpl','sg'};
-		options_desc = {'My Object is a basic shape (e.g. Cylinder)','I have a picture of my object','I have an STL file of my Object','I have a CPL of my object','I have a SG of my Object'};
+		options = {'bsh','img','stl','cpl','sg','sgc'};
+		options_desc = {'My Object is a basic shape (e.g. Cylinder)','I have a picture of my object','I have an STL file of my Object','I have a CPL of my object','I have a SG of my Object','I have a SGcommand String'};
 		inputStr = options{listdlg('ListString',options_desc,'SelectionMode','single','PromptString','In what form do you want to input your Object?','ListSize',dlg_size)};
 end
 
@@ -49,7 +49,7 @@ switch inputStr
 		end		
 		SG = placeObject(SG_object);
 	case 'bsh'
-		options = {'Box','Cylinder','Sphere'};
+		options = {'Box','Cylinder','Sphere','Conic Section'};
 		inputStr = options{listdlg('ListString',options,'SelectionMode','single','PromptString','What is your object resembling?','ListSize',dlg_size)};
 		switch inputStr
 			case options(1)
@@ -82,54 +82,32 @@ switch inputStr
 				prompt = {'DIAMETER of your Sphere in mm:'};
 				output_dlg = str2double(inputdlg(prompt,'Cylinder Dimensions',[1 35],{'20'}));					
 				SG_object = SGsphere(output_dlg(1));
+			case options(4)
+				prompt = {'DIAMETER of lower circle in mm:','DIAMETER of upper circle in mm:','Height of cone section in mm:'};
+				output_dlg = str2double(inputdlg(prompt,'Cone Dimensions',[1 35],{'20','30','100'}));
+				SG_object = SGof2CPLsz(PLcircle(output_dlg(2)/2),PLcircle(output_dlg(1)/2),output_dlg(3));
 	
 			otherwise
 				error("WRONG INPUT");
 		end
 		SG = placeObject(SG_object);	
+	case 'sgc'
+		command = inputdlg('What is the name of your CPL in the workspace');
+		SG_object = SGofCPLcommand(command{1});
+		SG = placeObject(SG_object);
 	case 'rmx'
 		SG = remixAdapter();
 	otherwise
 		error("WRONG INPUT");
 end
 if nargout == 0
-	close;
+	clf;
 	SGfigure;
 	SGplot(SG);
 	SGwriteSTL(SG);
-	SGwriteSTL(SG_object);
+	VLFLplotlight
 end
 view(3);
-
-end
-
-
-function [SG] = SGcompConfig(SG_object)
-SG = SGgripper();
-SG = SGtrans(SG,[0 0 -80]);
-SGplot(SG_object);
-SG_grip = SGplot(SG);
-SG_grip.Tag = 'gripper';
-
-gripper_numbers = 0;
-while ~ismember(gripper_numbers, [1,2,3,4])
-	gripper_numbers = input('How many fingers should your gripper have? 1-4 ');
-end
-SG = SGgripper('gripper_numbers',gripper_numbers);
-SG = SGtrans(SG,[0 0 -80]);
-patch = findall(gcf, 'Tag', 'gripper');
-delete(patch);
-SG_grip = SGplot(SG);
-
-grip_radius = 0;
-while grip_radius <= 0
-	grip_radius = input('What should the radius of your gripper be?');
-end
-SG = SGgripper('gripper_numbers',gripper_numbers);
-SG = SGtrans(SG,[0 0 -80]);
-patch = findall(gcf, 'Tag', 'gripper','Radius',grip_radius);
-delete(patch);
-SG_grip = SGplot(SG);
 
 end
 
@@ -149,8 +127,16 @@ SG_remix = SGtransrelSG(SG_remix,'','center','alignbottom');
 
 SGfigure;
 set(gcf, 'Position',fig_pos);
-f_anno=SGfigureannotation("Use the following keys to position your object" + newline + "V: Change view" + newline + "F/G: Increase/Decrease Rotation and Translation " + newline +"Arrow Keys: Move Part" + newline + "WA/SD/QE : Rotate Part"+ newline + "X : Confirm Position"+ newline + "T : Toggle overlay"+newline+ "(Parts below the red line will be cut off your object)",'y',10,1-(140/fig_pos(4)));
-p_anno = plotannotation({"Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
+f_anno_size = 140;
+f_anno_string = "Use the following keys to position your object" + newline ...
+	+ "V: Change view" + newline...
+	+"Arrow Keys: Move Part" + newline ...
+	+ "Rotate Object: (x-Axis) A/D (y-Axis) W/S (z-Axis) Q/E"+ newline ...
+	+ "X : Confirm Position"+ newline ...
+	+ "T : Toggle overlay"+newline+ ...
+	"(Parts below the red line will be cut off your object)";
+f_anno=SGfigureannotation(f_anno_string,'y',10,1-(f_anno_size/fig_pos(4)));
+p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 
 annotation('textbox',[.8 .5 .1 .1],'String',"Parts below red line"+ newline+ "will be cut off your object",'Color','r'); 
 
@@ -166,6 +152,7 @@ set(gca,'visible','off')
 view(90,0);
 while true		
 	[~,~,in]=myginput(1,'crosshair');
+	if isempty(in); continue; 	end
 	if in == 120
 		break;
 	end	
@@ -191,21 +178,24 @@ while true
 	if in == 116
 		if t_anno == 1
 			delete(f_anno);
-		else
+		else			
+			delete(p_anno);
 			pos = get(gcf, 'Position');
-			f_anno=SGfigureannotation("Use the following keys to position your object" + newline + "V: Change view" + newline + "Arrow Keys: Move Part" + newline + "WA/SD/QE : Rotate Part"+ newline + "X : Confirm Position"+ newline + "T : Toggle overlay"+newline+ "(Parts below the red line will be cut off your object)",'y',10,1-(120/pos(4)));
+			f_anno=SGfigureannotation(f_anno_string,'y',10,1-(f_anno_size/pos(4)));
+			p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 		end
 		t_anno = ~t_anno;
 	end
-	if in == 102
+	
+	if in == 102 || in ==  103
 		delete(p_anno);
-		factor = factor*2;
-		p_anno = plotannotation({"Rotation: +/- " + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
-	end
-	if in == 103
-		delete(p_anno);
-		factor = factor/2;
-		p_anno = plotannotation({"Rotation: +/- " + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
+		switch in
+			case 102
+				factor = factor*2;
+			case 103
+				factor = factor/2;
+		end
+		p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 	end
 		
 	patch_tmp = findall(gcf, 'Tag', 'adapter');
@@ -237,12 +227,17 @@ dlg_size = [400 100];
 factor = 1;
 rot_val = pi/2;
 tran_val = 1;
+servo_name = 'sm40bl';
+last_servo_name =servo_name;
+attach_dof = 'rotLock';
+last_attach_dof = attach_dof;
+attach_servo = 'sm40bl';
+last_attach_servo = attach_servo;
 H_Base_frame = [rotz(90) [0;0;0]; 0 0 0 1];
 SG_base_box = SGbox(0.1);
 SG_base_box = SGTset(SG_base_box,'BaseBox',H_Base_frame);
 
 close;
-
 SG_object = SGtrans0(SG_object);
 H_Object = [rotx(0) [0;0;0]; 0 0 0 1];
 SG_object = SGTset(SG_object,'Object',H_Object);
@@ -265,14 +260,16 @@ for h = 1:size(inputsG,1)
 	key2 = upper(getKeyCharFromASCII(inputsG{h,5}));
 	Help_string = Help_string + inputsG{h,1} + ": " + key1+"\"+key2 + "      ";
 end
-Help_string = Help_string + newline + "F/G: Increase/Decrease Amount of Rotation and Translation ";
+Help_string = Help_string + newline + "M: Change Servo/ C: Change Connector ";
 Help_string = Help_string + newline +  "V: Change view";
 Help_string = Help_string + newline + "T : Toggle Annotation";
 Help_string = Help_string + newline + "X : Confirm Position";
 SGfigure;
 set(gcf, 'Position',fig_pos);
-f_anno = SGfigureannotation(Help_string,'y',10,1-(140/fig_pos(4)));
-p_anno = plotannotation({"Rotation: +/- " + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/- " + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
+f_anno_size = 140;
+f_anno = SGfigureannotation(Help_string,'y',10,1-(f_anno_size/fig_pos(4)));
+p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
+
 
 
 gripper = SGplot(SG_grippers);
@@ -289,8 +286,13 @@ view(90,0);
 set(gca,'visible','off')
 view_switch = 0;
 t_anno = 1;
+last_inputsG = inputsG;
+err_anno = [];
 while true
-	[~,~,in]=myginput(1,'crosshair');
+	[~,~,in]=myginput(1,'crosshair');	
+	if isempty(in); continue; end
+	delete(err_anno);
+	change = 0;
 	if in == 120
 		SG_object = SGTset(SG_object,'ObjectPos',SGTget(SG_grippers,'ObjectPos'));
 		break;
@@ -302,17 +304,14 @@ while true
 			SG_object = SGtransrelSG(SG_object,SG_object,inputsO{k,1},-inputsO{k,2}*factor);
 		end
 	end
-	
 	for k=1:size(inputsG,1)
 		if in == inputsG{k,4}
 			inputsG{k,2}=inputsG{k,2}+(inputsG{k,3}*factor);
-			[SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG);
+			change = 1;
 		elseif in == inputsG{k,5}
 			inputsG{k,2}=inputsG{k,2}-(inputsG{k,3}*factor);
-			[SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG);
+			change = 1;
 		end
-		SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
-		SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
 	end
 	if in == 118
 		view_switch = mod(view_switch+1,3);
@@ -338,27 +337,54 @@ while true
 			view(45,45);
 		end		
 	end
-	if in == 102
+	if in == 102 || in == 103
 		delete(p_anno);
-		factor = factor*2;
-		p_anno = plotannotation({"Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
-	end
-	if in == 103
-		delete(p_anno);
-		factor = factor/2;
-		p_anno = plotannotation({"Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
+		switch in
+			case 102				
+				factor = factor*2;
+			case 103				
+				factor = factor/2;
+		end
+		p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 	end
 	if in == 116
 		if t_anno == 1			
 			delete(f_anno);
 		else	
 			delete(p_anno);
-			f_anno = SGfigureannotation(Help_string,'y',10,1-(140/fig_pos(4)));
-			p_anno = plotannotation({"Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"} ,'Color','b'); 
+			f_anno = SGfigureannotation(Help_string,'y',10,1-(f_anno_size/fig_pos(4)));
+			p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 		end		
 		t_anno = ~t_anno;
 	end		
-	
+	if in == 109 %m
+		servo_options = readtable('Servos.xlsx');
+		servo_options = table2cell(servo_options(:,1)); 
+		servo_name = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
+		change = 1;
+	end	
+	if in == 99 %c
+		[~,~,dof_options] = SGdofsLCL();
+		attach_dof = dof_options{listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Which connector do you want?')};
+		servo_options = readtable('Servos.xlsx');
+		servo_options = table2cell(servo_options(:,1));
+		attach_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
+		change = 1;
+	end
+	if change
+		try
+			[SG_gripper_sil,SG_grippers] = SGendeffectors(inputStr,inputsG,'',servo_name,attach_dof,attach_servo);
+			SG_gripper_sil = SGtransrelSG(SG_gripper_sil,SG_base_box,'alignT',{'GripperT','BaseBox'});
+			SG_grippers = SGtransrelSG(SG_grippers,SG_gripper_sil,'alignT',{'GripperT','GripperT'});
+		catch
+			err_anno = annotation('textbox', [0.4, 0, 0.1, 0.1], 'String', "Change was not possible! Reverted!",'Color','r','linestyle','none');
+			inputsG = last_inputsG;
+			attach_dof = last_attach_dof;
+			attach_servo = last_attach_servo;
+			servo_name = last_servo_name;
+		end
+	end
+
 	patch = findall(gcf, 'Tag', 'gripper');
 	delete(patch);	
 	SG_grippers = SGcolorfaces(SG_grippers,'g');
@@ -375,6 +401,11 @@ while true
 	delete(patch);
 	object = SGplot(SG_object);
 	object.Tag = 'object';
+	
+	last_inputsG = inputsG;
+	last_attach_dof = attach_dof;
+	last_attach_servo =attach_servo;
+	last_servo_name= servo_name;
 	
 	
 end

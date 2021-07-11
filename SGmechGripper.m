@@ -14,7 +14,8 @@
 function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGmechGripper(varargin)
 gripper_height = 20;
 
-inputsObject = {'transz',2,30,31;'transy',2,52,54;'transx',2,50,56;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',pi/2,101,113};
+
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotz',-pi/2,101,113};
 inputsGripper = {'grip_H',gripper_height,2,43,45};
 
 if ~isempty(varargin)
@@ -33,6 +34,8 @@ SG_object = [];
 
 i_idx = 1;
 axle_lengths =[];
+conn_servo = 'sm40bl';
+conn_type = 'rotLock';
 while i_idx<=size(varargin,2)
 	if ~ischar(varargin{i_idx})
 		i_idx = i_idx+1; 
@@ -46,7 +49,7 @@ while i_idx<=size(varargin,2)
 		case 'output'
 			output =1;			
 		case 'conn_servo'
-			servo_name = varargin{i_idx+1};		
+			conn_servo = varargin{i_idx+1};		
 			i_idx = i_idx+1;	
 		case 'conn_type'
 			conn_type = varargin{i_idx+1};		
@@ -58,8 +61,7 @@ end
 main_R = 35;
 main_H = 40;
 
-servo_name = 'sm40bl';
-conn_type = 'rotLock';
+
 
 path_depth = 10;
 spring_R = 9.6/2;
@@ -74,7 +76,7 @@ axle_oR = axle_R+3;
 gripper_attach_R = main_R+20;
 gripper_attach_H = (main_H+7) + 40;
 
-servo = readServoFromTable(servo_name);
+servo = readServoFromTable(conn_servo);
 CPL_screw_pattern = CPLcopyradial(PLcircle(servo.connect_screw_R),servo.connect_screw_circle_R,servo.connect_screw_Num);
 CPL_screwhead_pattern = CPLcopyradial(PLcircle(servo.connect_screw_R*2),servo.connect_screw_circle_R,servo.connect_screw_Num);
 
@@ -87,7 +89,7 @@ mid_slot = 2*(servo.connect_screw_circle_R+servo.connect_screw_R);
 CPL_main = PLcircle(main_R,'','',main_R-5);
 CPL_main_top = CPLconvexhull([PLroundcorners(PLsquare(2*(main_R+14.25),36),[1,2,3,4],4);CPL_main]);
 
-[SG_connector,CPL_connection] = SGconnAdaptersLCL('servo',servo_name,'adapter_type',conn_type,'cable',0);
+[SG_connector,CPL_connection] = SGconnAdaptersLCL('servo',conn_servo,'adapter_type',conn_type,'cable',0);
 
 if conn_type == 'z'
 	CPL_connection =  CPLbool('-',CPL_connection,CPL_screw_pattern);

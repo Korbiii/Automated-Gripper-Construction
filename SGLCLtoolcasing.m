@@ -1,12 +1,12 @@
 function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolcasing(varargin)
-servo_name = 'sm40bl';
-adapter_type = 'rotLock';
+conn_servo = 'sm40bl';
+conn_type = 'rotLock';
 width_holder = 50;
 height_holder = 50;
 thickness = 50;
 output = 0;
 
-inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',pi/2,97,100};
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotz',-pi/2,101,113};
 inputsGripper = {'width',50,2,43,45;'height',50,3,104,106;'thickness',50,2,107,108};
 
 if ~isempty(varargin)
@@ -38,10 +38,10 @@ while i_idx<=size(varargin,2)
 		case 'SG_object'
 			SG_object = varargin{i_idx+1};
 		case 'conn_type'
-			SG_object = varargin{i_idx+1};					
+			conn_type = varargin{i_idx+1};					
 			i_idx = i_idx+1;	
 		case 'conn_servo'
-			SG_object = varargin{i_idx+1};		
+			conn_servo = varargin{i_idx+1};		
 			i_idx = i_idx+1;	
 		case 'output'
 			output = 1;
@@ -83,11 +83,12 @@ if ~isempty(SG_object)
 	
 	SG_fixed_side = SGslicebool(SG_fixed_side,SG_object);
 	SG_variable_side = SGslicebool(SGtransrelSG(SG_variable_side,'','rotx',-pi/2),SGtransrelSG(SG_object,'','rotx',-pi/2));	
-	SG_main_body = SGcatF(SG_fixed_side,SG_variable_side);	
-	SG_variable_side = SGtransrelSG(SG_variable_side,'','rotx',pi/2);	
+	
+	SG_variable_side = SGtransrelSG(SG_variable_side,'','rotx',pi/2);
+	SG_main_body = SGcatF(SG_fixed_side,SG_variable_side);		
 end
 
-[SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type',adapter_type,'servo',servo_name,'cable',0);
+[SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type',conn_type,'servo',conn_servo,'cable',0);
 CPL_connector = CPLaddauxpoints(CPL_connector,0.5);
 CPL_base = CPLaddauxpoints(PLsquare(width_holder,thickness),0.5);
 SG_connection = SGof2CPLsz(CPL_connector,CPL_base,10);

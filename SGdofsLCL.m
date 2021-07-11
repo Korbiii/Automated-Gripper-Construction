@@ -19,7 +19,7 @@ servo_name = 'sm40bl';
 thread_length = 12;
 dof = 'rotLock';
 
-attach_dof = 'x';
+attach_dof = '';
 attach_servo = 'sm40bl';
 
 print_help_layer = 0;
@@ -195,7 +195,6 @@ switch dof
 		SG_lid = SGTset(SG_lid,'B',H_b_lid);
 		H_f_lid = [rotx(0) [0;0;3]; 0 0 0 1];
 		SG_lid = SGTset(SG_lid,'F',H_f_lid);
-		SGwriteSTL(SG_lid);
 		if attach_dof ~= 0
 			[SG_connector,CPL_connector] = SGconnAdaptersLCL('servo',attach_servo,'adapter_type',attach_dof);
 			CPL_coonector = CPLaddauxpoints(CPL_connector,0.5);

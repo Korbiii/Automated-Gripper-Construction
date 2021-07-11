@@ -20,13 +20,16 @@ thread_length = 12;
 printhelp =0;
 servo_name = 'sm40bl';
 conn_type  = 'rotLock';
+conn_servo  = 'sm40bl';
 
 jaw_th = 5;
 jaw_H = 40;
 opening = 40;
 
-inputsObject = {'transz',2,30,31;'transy',2,52,54;'transx',2,50,56;'roty',pi/2,115,119;'rotz',pi/2,97,100;'rotx',pi/2,101,113};
-inputsGripper = {'jaw_th',jaw_th,1,43,45;'opening' opening 2 29 28;'jaw_H',jaw_H,1,104,106};
+
+
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotz',-pi/2,101,113};
+inputsGripper = {'jaw_th',jaw_th,1,43,45;'opening' opening 2 111 112;'jaw_H',jaw_H,1,104,106};
 
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -57,11 +60,14 @@ while i_idx<=size(varargin,2)
 			jaw_H = max(jaw_H,varargin{i_idx+1});
 		case 'opening'
 			opening = varargin{i_idx+1};	
+		case 'servo'
+			servo_name = varargin{i_idx+1};			
+			i_idx = i_idx+1;	
 		case 'conn_type'
-			SG_object = varargin{i_idx+1};			
+			conn_type = varargin{i_idx+1};			
 			i_idx = i_idx+1;	
 		case 'conn_servo'
-			SG_object = varargin{i_idx+1};			
+			conn_servo = varargin{i_idx+1};			
 			i_idx = i_idx+1;	
 		case 'output'
 			output = 1;
@@ -156,7 +162,7 @@ SG_guide = SGcat(SG_guide,SGmirror(SG_guide,'xz'));
 
 SG = SGcat(SG,SG_guide);
 
-[SG_connector,CPL_connection] = SGconnAdaptersLCL('servo',servo_name,'adapter_type',conn_type,'cable',1);
+[SG_connector,CPL_connection] = SGconnAdaptersLCL('servo',conn_servo,'adapter_type',conn_type,'cable',1);
 CPL_connection = CPLaddauxpoints(CPL_connection,.5);
 CPL_main_bottom_layer = CPLaddauxpoints(CPL_main_bottom_layer,.5);
 SG_2main_connection = SGof2CPLsz(CPL_connection,CPL_main_bottom_layer,10);
@@ -284,15 +290,16 @@ H_Gripper_pos = [rotx(0) [0;0;height-3]; 0 0 0 1];
 SG_gripper_attachment = SGTset(SG_gripper_attachment,'GripperT',H_Gripper_pos);
 
 
-SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignTz',{'GripperT','GripperT'},'transz',10);
+SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignT',{'GripperT','GripperT'});
 
 if ~isempty(SG_object)
 	SG_object = SGtransrelSG(SG_object,SG_gripper_attachment,'alignTz',{'ObjectPos','ObjectPos'});	
 	SG_gripper_attachment = SGslicebool(SG_gripper_attachment,SG_object);
 end
 
+SG_gripper_attachment = SGtransrelSG(SG_gripper_attachment,SG_main_body,'alignT',{'GripperT','GripperT'});
 
-% SG_gripper_attachment_ = SGanalyzeGroupParts(SG_gripper_attachment);
+
 
 %% STLs
 if output
@@ -307,7 +314,7 @@ end
 
 %% Plots
 SG_gripper_body = SGcatF(SG_main_body,SGontop(SG_grippers_mir,SG_main_body,-10));
-SG_final = SGcat(SG_gripper_body,SG_insert);
+SG_final = SGcat(SG_gripper_body,SG_insert,SG_gripper_attachment);
 if nargout== 0
 	clf;
     SGplot(SG_final);	

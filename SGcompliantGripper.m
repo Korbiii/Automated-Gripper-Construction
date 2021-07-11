@@ -20,8 +20,6 @@
 function [SG_gripper_sil,SG_grippers,SG_final,inputsObject,inputsGripper] = SGcompliantGripper(varargin)
 
 
-inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotx',0.1,97,100};
-inputsGripper = {'gripper_numbers',2,1,43,45;'Radius',47,1,60,62};
 
 %%Default configuration
 
@@ -37,9 +35,12 @@ gripper_angles = [0,180];
 conn_servo_name = 'sm40bl';
 conn_type  = 'rotLock';
 
+inputsObject = {'transy',1,29,28;'transz',2,30,31;'roty',pi/2,115,119;'rotx',pi/2,97,100;'rotz',-pi/2,101,113};
+inputsGripper = {'gripper_numbers',gripper_number,1,43,45;'Radius',max_grip_R,1,60,62;'finger_length_low',finger_length_low,1,107,108;'finger_tip_length',finger_tip_length,1,104,106};
+
 
 %% Default variables
-output = 1;
+output = 0;
 axle_lengths =[];
 if ~isempty(varargin)
 	if strcmp(varargin{1},'c_inputs')
@@ -124,8 +125,8 @@ CPL_outer = [];
 for i=1:gripper_number
 	is_inside = insideCPS(CPL_servo_outer,PLtransR(CPL_grip_attach_test,rot(deg2rad(gripper_angles(i)))));
 	if sum(is_inside(:) == 1) > 0
-		CPLplot(CPL_servo_outer,'b');
-		CPLplot(PLtransR(CPL_grip_attach,rot(deg2rad(gripper_angles(i)))));
+% 		CPLplot(CPL_servo_outer,'b');
+% 		CPLplot(PLtransR(CPL_grip_attach,rot(deg2rad(gripper_angles(i)))));
 		error("Radius too small for angle "+ i);
 	end
 	CPL_outer = CPLbool('+',CPL_outer,PLtransR(CPL_grip_attach,rot(deg2rad(gripper_angles(i)))));
@@ -367,11 +368,11 @@ SG_fl_lever = SGtransrelSG(SG_fl_lever,SG_fl_mid,'aligntop');
 SG_fl_mid = SGcat(SG_fl_lever,SG_fl_mid);
 
 height = max(SG_fl_mid.VL(:,3));
-H_Gripper_pos = [rotz(90) [0;0;height]; 0 0 0 1];
+H_Gripper_pos = [rotz(90)*rotx(180) [0;0;height]; 0 0 0 1];
 SG_fl_mid = SGTset(SG_fl_mid,'GripperT',H_Gripper_pos);
 
 height = max(SG_fl_mid.VL(:,3));
-T_object_pos = [rotz(90) [0;0;height+20]; 0 0 0 1];
+T_object_pos = [rotz(90)*rotx(180) [0;0;height+20]; 0 0 0 1];
 SG_fl_mid = SGTset(SG_fl_mid,'ObjectPos',T_object_pos);
 
 %% Connecting rod
@@ -676,7 +677,8 @@ for i = 1 : gripper_number
 end
 fc = SGTframeChain(1,fc2);
 SGc = SGTchain(SG_eles,[0],'',fc);
-SGc = SGcat(SGc);
+SG_base = SGc{1};
+SG_grippers = SGcat(SGc{2:end});
 
 SG_lid = SGtransrelSG(SG_lid,SG_main_body,'ontop',-3);
 fc2 = {};
@@ -704,15 +706,21 @@ SGc2 = SGcat(SGc2);
 SG_mid_rotator = SGtransrelSG(SG_mid_rotator,SG_lid,'ontop',-4);
 SG_fl_mid = SGtransrelSG(SG_fl_mid,SG_mid_rotator,'aligntop',3);
 
-SG_gripper_sil = SGcatF(SGc,SGc2,SG_mid_rotator,SG_fl_mid);
-if nargout== 0
-    SGplot(SG_gripper_sil);
-end
-SG_final = SG_gripper_sil;
-SG_grippers= SG_main_body;
-SG_grippers.alpha = 0;
+SG_gripper_sil = SGcatF(SG_base,SGc2,SG_mid_rotator,SG_fl_mid);
 
-SGwriteSTL(SG_final);
+
+T_GripperT = SGTget(SG_gripper_sil,'GripperT');
+T_GripperT(1:3,1:3) = T_GripperT(1:3,1:3)*roty(180);
+SG_grippers = SGTset(SG_grippers,'GripperT',T_GripperT);
+T_Object_pos = SGTget(SG_gripper_sil,'ObjectPos');
+T_Object_pos(1:3,1:3) = T_Object_pos(1:3,1:3)*roty(180);
+SG_grippers = SGTset(SG_grippers,'ObjectPos',T_Object_pos);
+
+SG_final = SGcatF(SG_gripper_sil,SG_grippers);
+if nargout== 0
+    SGplot(SG_final);
+end
+
 
 end
 

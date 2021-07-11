@@ -4,6 +4,7 @@
 %    
 function [SG] = LCLrobot(varargin)
 close all
+fig_pos = [100 100 1280 720];
 
 [~,~,dof_options] = SGdofsLCL();
 servo_options = readtable('Servos.xlsx');
@@ -16,43 +17,63 @@ load('STL/UpperArm.mat');
 phis = [0 pi -pi/4 -pi/4];
 SGs = {SG_base,SG_shoulder,SG_upper_Arm};
 SGc = SGTchain(SGs,[0 pi -pi/4]);
-SGplot(SGc);
-view(3);
+SGfigure;
+set(gcf, 'Position',fig_pos);
+refresh(SGc);
 
+success = 0;
+while success == 0
+	arm_length = str2double(inputdlg('How long should the lower arm be?'));
+	try
+		SGs{end+1} = SGLCLlowerArm('arm_length',arm_length,'dof','z','servo','sm40bl');
+		success = 1;
+	catch	
+	end
+end
 
-arm_length = str2double(inputdlg('How long should the lower arm be?'));
-SGs{end+1} = SGLCLlowerArm('arm_length',arm_length,'dof','z','servo','sm40bl');
 SGc = SGTchain(SGs,phis);
-clf;
-SGplot(SGc);
-view(3);
+refresh(SGc);
 
-last_dof = dof_options{listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the lower arm degree of freedom')};
-SGs{end} = SGLCLlowerArm('arm_length',arm_length,'dof',last_dof,'servo','sm40bl');
+success = 0;
+while success == 0
+	last_dof = dof_options{listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the lower arm degree of freedom')};
+	try		
+		SGs{end} = SGLCLlowerArm('arm_length',arm_length,'dof',last_dof,'servo','sm40bl');
+		success = 1;
+	catch
+	end
+end
 SGc = SGTchain(SGs,phis);
-clf;
-SGplot(SGc);
-view(3);
+refresh(SGc);
 
-last_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
-SGs{end} = SGLCLlowerArm('arm_length',arm_length,'dof',last_dof,'servo',last_servo);
+success = 0;
+while success == 0
+	last_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
+	try		
+		SGs{end} = SGLCLlowerArm('arm_length',arm_length,'dof',last_dof,'servo',last_servo);
+		success = 1;
+	catch
+	end
+end
 SGc = SGTchain(SGs,phis);
-clf;
-SGplot(SGc);
-view(3);
+refresh(SGc);
 
 
 next_dof = listdlg('ListString',dof_options,'SelectionMode','single','PromptString','Choose the next dof');
 while ~isempty(next_dof)
 	next_dof = dof_options{next_dof};
-	next_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
-		
-	SGs{end+1} = SGdofsLCL('attach_dof',last_dof,'dof',next_dof,'servo',next_servo,'attach_servo',last_servo);
+	success = 0;
+	while success == 0
+		next_servo = servo_options{listdlg('ListString',servo_options,'SelectionMode','single','PromptString','Choose the motor for the dof')};
+		try
+			SGs{end+1} = SGdofsLCL('attach_dof',last_dof,'dof',next_dof,'servo',next_servo,'attach_servo',last_servo);
+			success = 1;
+		catch
+		end
+	end	
 	phis = [phis 0];
 	SGc = SGTchain(SGs,phis);
-	clf;
-	SGplot(SGc);
-	view(3);
+	refresh(SGc);
 	
 	last_servo = next_servo;
 	last_dof = next_dof;
@@ -61,11 +82,20 @@ end
 
 SGs{end+1} = SGdofsLCL('attach_dof',last_dof,'dof','rotLock','attach_servo',last_servo,'cable');
 SGc = SGTchain(SGs,[phis 0]);
+
 if nargout == 0
 	clf;
 	SGplot(SGc);
 	view(3);
 end
 
+end
 
+function refresh(SG)
+	clf;
+	SG = SGcat(SG);
+	SGplot(SG);
+	VLFLplotlight;	
+	set(gca,'visible','off')
+	view(3);
 end

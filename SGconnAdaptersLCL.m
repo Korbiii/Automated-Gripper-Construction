@@ -8,8 +8,9 @@
 %    === OUTPUT RESULTS ======
 %    CPL:					CPL of crosssection of top of adapter
 %	 SG:					SG of Adapter
-function [SG, CPL] = SGconnAdaptersLCL(varargin)
+function [SG, CPL, conn_dofs] = SGconnAdaptersLCL(varargin)
 
+conn_dofs = {'z','x','y','rotLock','legacy'};
 tol = 0.5;
 servo_name = 'sm40bl';
 screw_length = 12;

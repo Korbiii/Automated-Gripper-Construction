@@ -14,8 +14,8 @@
 %	 inputsObject:			Input array for object manipulation
 %	 inputsGripper:			Input array for gripper manipulation
 function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder(varargin)
-servo_name = 'sm40bl';
-adapter_type = 'rotLock';
+conn_servo = 'sm40bl';
+conn_type = 'rotLock';
 width_holder = 50;
 length_holder = 50;
 height_holder = 50;
@@ -52,10 +52,10 @@ while i_idx<=size(varargin,2)
 		case 'SG_object'
 			SG_object = varargin{i_idx+1};
 		case 'conn_type'
-			SG_object = varargin{i_idx+1};					
+			conn_type = varargin{i_idx+1};					
 			i_idx = i_idx+1;	
 		case 'conn_servo'
-			SG_object = varargin{i_idx+1};		
+			conn_servo = varargin{i_idx+1};		
 			i_idx = i_idx+1;	
 		case 'output'
 			output = 1;
@@ -83,7 +83,7 @@ if ~isempty(SG_object)
 	SG_main_body=SGslicebool(SG_main_body,SG_object);
 end
 
-[SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type',adapter_type,'servo',servo_name,'cable',0);
+[SG_connector, CPL_connector] = SGconnAdaptersLCL('adapter_type',conn_type,'servo',conn_servo,'cable',0);
 CPL_connector = CPLaddauxpoints(CPL_connector,0.5);
 CPL_base = CPLaddauxpoints(CPL_base,0.5);
 SG_connection = SGof2CPLsz(CPL_connector,CPL_base,10);
