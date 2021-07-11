@@ -11,7 +11,7 @@
 %	 SG_final:				SG complete gripper
 %	 inputsObject:			Input array for object manipulation
 %	 inputsGripper:			Input array for gripper manipulation
-function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGLCLmechGripper(varargin)
+function [SG,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGLCLgripperPassive(varargin)
 gripper_height = 20;
 
 

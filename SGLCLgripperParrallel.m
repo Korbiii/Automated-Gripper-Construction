@@ -13,7 +13,7 @@
 %	 SG_final:				SG complete gripper
 %	 inputsObject:			Input array for object manipulation
 %	 inputsGripper:			Input array for gripper manipulation
-function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGLCLparrallelGripper(varargin)
+function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGLCLgripperParrallel(varargin)
 
 tol=0.5;
 thread_length = 12;

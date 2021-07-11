@@ -17,7 +17,7 @@
 %	 SG_final:				SG complete gripper
 %	 inputsObject:			Input array for object manipulation
 %	 inputsGripper:			Input array for gripper manipulation
-function [SG_gripper_sil,SG_grippers,SG_final,inputsObject,inputsGripper] = SGcompliantGripper(varargin)
+function [SG_gripper_sil,SG_grippers,SG_final,inputsObject,inputsGripper] = SGLCLgripperCompliant(varargin)
 
 
 

@@ -1,4 +1,4 @@
-function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolcasing(varargin)
+function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolCasing(varargin)
 conn_servo = 'sm40bl';
 conn_type = 'rotLock';
 width_holder = 50;

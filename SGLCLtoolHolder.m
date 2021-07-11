@@ -13,7 +13,7 @@
 %	 SG_final:				SG complete toolholder
 %	 inputsObject:			Input array for object manipulation
 %	 inputsGripper:			Input array for gripper manipulation
-function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder(varargin)
+function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolHolder(varargin)
 conn_servo = 'sm40bl';
 conn_type = 'rotLock';
 width_holder = 50;
