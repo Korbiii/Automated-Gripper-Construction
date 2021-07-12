@@ -75,7 +75,7 @@ T_Object = [rotx(0) [0;0;height_max]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'ObjectPos',T_Object);
 
 height_min = min(SG_main_body.VL(:,3));
-T_connection_top = [rotx(180) [0;0;height_min]; 0 0 0 1];
+T_connection_top = [rotx(0) [0;0;height_min]; 0 0 0 1];
 SG_main_body = SGTset(SG_main_body,'GripperT',T_connection_top);
 
 if ~isempty(SG_object)
@@ -96,7 +96,7 @@ SG_connection = SGof2CPLsz(CPL_connector,CPL_base,10);
 SG_base = SGstack('z',SG_connector,SG_connection);
 
 height_max = max(SG_base.VL(:,3));
-T_Connection_bot = [rotx(0) [0;0;height_max]; 0 0 0 1];
+T_Connection_bot = [rotx(180) [0;0;height_max]; 0 0 0 1];
 SG_base = SGTset(SG_base,'GripperT',T_Connection_bot);
 
 SG_complete = SGstack('z',SG_connector,SG_connection,SG_main_body);
