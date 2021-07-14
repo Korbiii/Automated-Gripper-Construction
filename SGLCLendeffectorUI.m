@@ -104,7 +104,7 @@ if nargout == 0
 	clf;
 	SGfigure;
 	SGplot(SG);
-	VLFLplotlight;
+% 	VLFLplotlight;
 end
 view(3);
 
@@ -134,6 +134,7 @@ f_anno_string = "Use the following keys to position your object" + newline ...
 	+ "X : Confirm Position"+ newline ...
 	+ "T : Toggle overlay"+newline+ ...
 	"(Parts below the red line will be cut off your object)";
+f_anno_string=regexprep(f_anno_string, '[\\\^\_]','\\$0');
 f_anno=SGfigureannotation(f_anno_string,'y',10,1-(f_anno_size/fig_pos(4)));
 p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 
@@ -257,7 +258,7 @@ Help_string = Help_string +newline+ "Endeffectoroptions:   ";
 for h = 1:size(inputsG,1)
 	key1 = upper(getKeyCharFromASCII(inputsG{h,4}));
 	key2 = upper(getKeyCharFromASCII(inputsG{h,5}));
-	Help_string = Help_string + inputsG{h,1} + ": " + key1+"\"+key2 + "      ";
+	Help_string = Help_string + inputsG{h,1} + ": " + key1+"/"+key2 + "      ";
 end
 Help_string = Help_string + newline + "M: Change Servo/ C: Change Connector ";
 Help_string = Help_string + newline +  "V: Change view";
@@ -266,7 +267,9 @@ Help_string = Help_string + newline + "X : Confirm Position";
 SGfigure;
 set(gcf, 'Position',fig_pos);
 f_anno_size = 140;
+Help_string=regexprep(Help_string, '[\\\^\_]','\\$0');
 f_anno = SGfigureannotation(Help_string,'y',10,1-(f_anno_size/fig_pos(4)));
+set(f_anno,'DefaultTextInterpreter','none')
 p_anno = plotannotation({"F/G: Increase/Decrease :"," ","Rotation: +/-" + num2str(rad2deg(factor*rot_val))+ "°","Translation: +/-" + num2str(factor*tran_val)+ " mm"},'Color','b'); 
 
 

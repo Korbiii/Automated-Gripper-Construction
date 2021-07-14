@@ -17,7 +17,7 @@ CPL = [];
 tol = 0.5;
 servo_name = 'sm40bl';
 thread_length = 12;
-dof = 'rotLock';
+dof = 'x';
 
 attach_dof = '';
 attach_servo = 'sm40bl';

@@ -14,7 +14,7 @@ conn_dofs = {'z','x','y','rotLock','legacy'};
 tol = 0.5;
 servo_name = 'sm40bl';
 screw_length = 12;
-adapter_type = 'rotLock';
+adapter_type = 'x';
 cable = 1;
 print_help_layer = 0;
 
