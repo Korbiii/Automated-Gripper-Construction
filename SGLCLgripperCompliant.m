@@ -1,22 +1,28 @@
-%%   [SG_gripper_sil,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGcompliantGripper([variable_name, value])
-%    === INPUT PARAMETERS ===
-%    'gripper_numbers':		Number of gripper fingers
-%	 'gripper_angles':		Array of absolute gripper angels. e.g. [120,240]
-%    'Radius':				Radius of gripper fingers.
-%	 'servo':				Servo used for gripper
-%	 'conn_servo':			Servo in previous degree of freedom	
-%    'conn_type':			Type of connection to previous degree of freedom
-%    'finger_length_low':	Length of lower finger
-%    'finger_tip_length':	Length of finger tip
-%    'attach_width':		Width of finger atttachment point
-%    'output':				If set function writes STLs
-%	 'c_input':				Cell array of above inputs e.g. {'gripper_numbers',3;'Radius',30}
-%    === OUTPUT RESULTS ======
-%    SG_gripper_sil:		SG of gripper main body
-%	 SG_grippers:			SG of variable gripper parts with reduced alpha value
-%	 SG_final:				SG complete gripper
-%	 inputsObject:			Input array for object manipulation
-%	 inputsGripper:			Input array for gripper manipulation
+% SGcompliantGripper([variable_name, value]) - returns SGs for a compliant
+% gripper for additive manufacturing
+%
+%	This functions generates a teach and repeat programmable compliant
+%	finger gripper based on the design of Tlegenov 2014 (Tlegenov, Y., Telegenov, K., & Shintemirov, A. (2014). An open-source 3D printed underactuated robotic gripper. 2014 IEEE/ASME 10th International Conference on Mechatronic and Embedded Systems and Applications (MESA))
+%
+%   [SG_gripper_sil,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGcompliantGripper([variable_name, value])
+%   === INPUT PARAMETERS ===
+%   'gripper_numbers':		Number of gripper fingers
+%	'gripper_angles':		Array of absolute gripper angels. e.g. [120,240]
+%   'Radius':				Radius of gripper fingers.
+%	'servo':				Servo used for gripper
+%	'conn_servo':			Servo in previous degree of freedom	
+%   'conn_type':			Type of connection to previous degree of freedom
+%   'finger_length_low':	Length of lower finger
+%   'finger_tip_length':	Length of finger tip
+%   'attach_width':			Width of finger atttachment point
+%   'output':				If set function writes STLs
+%	'c_input':				Cell array of above inputs e.g. {'gripper_numbers',3;'Radius',30}
+%   === OUTPUT RESULTS ======
+%   SG_gripper_sil:			SG of gripper main body
+%	SG_grippers:			SG of variable gripper parts with reduced alpha value
+%	SG_final:				SG complete gripper
+%	inputsObject:			Input array for object manipulation
+%	inputsGripper:			Input array for gripper manipulation
 function [SG_gripper_sil,SG_grippers,SG_final,inputsObject,inputsGripper] = SGLCLgripperCompliant(varargin)
 
 

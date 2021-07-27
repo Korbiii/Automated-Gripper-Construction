@@ -1,9 +1,14 @@
-%%   SGs = SGaxle([R,lengths])
-%    === INPUT PARAMETERS ===
-%    R :		Radius of axles
-%	 lengths:	Array of Axls lengths
-%    === OUTPUT RESULTS ======
-%    SGs :		Array of all Axle SGs 
+% SGaxle([R,lengths]) - returns SGs of axles used for grippers
+% 
+%	Function creates an array of axle SGs based on a list of lenghts
+% 
+% 
+%   SGs = SGaxle([R,lengths])
+%   === INPUT PARAMETERS ===
+%   R :			Radius of axles
+%	lengths:	Array of Axls lengths
+%   === OUTPUT RESULTS ======
+%   SGs :		Array of all Axle SGs 
 function SGs = SGaxle(varargin)
 
 R = 3; if nargin >=1 && ~isempty(varargin{1}) R = varargin{1}; end

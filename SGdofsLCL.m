@@ -1,14 +1,20 @@
-%%   [SG, CPL] = SGdofsLCL([variable_name, value])
-%    === INPUT PARAMETERS ===
-%    'dof':					Type of degree of freedom. Rotation: x,y,z
-%	 'servo':				Servo used for degree of freedom
-%	 'attach_dof':			Previous degree of freedom
-%	 'attach_servo':		Servo used in previous degree of freedom	
-%	 'thread_length':		Threadlength of used screw: default = 12	
-%    'fdm_help_layers':		Activate help Layers for FDM printing
-%    === OUTPUT RESULTS ======
-%    CPL:					CPL of crosssection of bottom of degree of freedom
-%	 SG:					SG of degree of freedom
+% SGdofsLCL([variable_name, value]) - returns a SG of a DOF of the LCL
+% robot
+% 
+%	This function meant is to hold all variation of degree of freedoms for
+%	the LCL robot. It is the part of a dof that holds the motor.
+% 
+%	[SG, CPL] = SGdofsLCL([variable_name, value])
+%   === INPUT PARAMETERS ===
+%   'dof':					Type of degree of freedom. Rotation: x,y,z
+%	'servo':				Servo used for degree of freedom
+%	'attach_dof':			Previous degree of freedom
+%	'attach_servo':		Servo used in previous degree of freedom	
+%	'thread_length':		Threadlength of used screw: default = 12	
+%   'fdm_help_layers':		Activate help Layers for FDM printing
+%   === OUTPUT RESULTS ======
+%   CPL:					CPL of crosssection of bottom of degree of freedom
+%	SG:					SG of degree of freedom
 function [SG, CPL, dofs] = SGdofsLCL(varargin)
 
 dofs = {'z','x','y','rotLock'};

@@ -1,3 +1,17 @@
+% SGcatF(SG1,SG2,[SG3],...) - returns concatenation of two or more solids or sets of
+%	while preserving all inserted Frames.
+% 
+%	Compared to the normal SGcat function this function is designed to
+%	preserve all Frames of the inputted SGs instead of just from the first
+%	one.% 
+% 
+%   SG = SGcatF(SG1,SG2,[SG3],...)
+%   === INPUT PARAMETERS ===
+%   SG1:		First SG to concatenate
+%	SG2:		Second SG to concatenate
+%	...			More SG to concatenate
+%   === OUTPUT RESULTS ======
+%   SG :		Concatenated SG of all input SGs with all Frames
 function [SG] = SGcatF(varargin)
 num_inputs = nargin;
 if num_inputs == 1

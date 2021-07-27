@@ -1,4 +1,9 @@
-%%  [SG] = SGcircularpattern(SG,n,angle)
+% SGcircularpattern(SG,n,angle) - returns a circular pattern of a SG
+% 
+%	This function is just there to build a simple circular patter of an SG
+%	given an angle and number of copies.
+% 
+% 	[SG] = SGcircularpattern(SG,n,angle)
 %	=== INPUT PARAMETERS ===
 %	SG:     SG for circular pattern
 %	n:      number of copies

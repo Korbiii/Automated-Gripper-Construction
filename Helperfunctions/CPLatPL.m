@@ -1,3 +1,14 @@
+% CPLatPL(CPL_in,PL) - returns CPL of CPLs
+% 
+%	Function places CPL at given positions from a Point List.
+% 
+% 
+%   [CPL] = CPLatPL(CPL_in,PL)
+%   === INPUT PARAMETERS ===
+%   CPL_in :	CPL that should be placed at points of PL
+%	PL:			PL that contains positions for CPL
+%   === OUTPUT RESULTS ======
+%   CPL :		Final CPL
 function [CPL] = CPLatPL(CPL_in,PL)
 
 CPL = [];

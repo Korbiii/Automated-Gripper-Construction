@@ -1,8 +1,13 @@
-%%  [SG] = SGstack(SGs)
+% SGstack(SGs) - returns a SG that consists of multiple SGs stacked onto
+% each other
+% 
+%	This function stacks different SGs in comparison to SGstackn that only
+%	stacks one SG multiple times.
+% 
+%	[SG] = SGstack(SGs)
 %	=== INPUT PARAMETERS ===
 %   dir:        Direction of stacking y,x,z
 %	SGs:        Array of SGs
-
 %	=== OUTPUT RESULTS ======
 %	SG:         SG of stacked SGs
 function [SG] = SGstack(dir,varargin)

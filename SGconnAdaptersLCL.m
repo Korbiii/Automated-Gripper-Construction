@@ -1,13 +1,20 @@
-%%   [SG, CPL] = SGconnAdaptersLCL([variable_name, value])
-%    === INPUT PARAMETERS ===
-%    'adapter_type':		Type of adapter. Rotation x,z,rotLock
-%	 'servo':				Servo used for adapters that arent rotLock
-%	 'cable':				Hole for cable. default = Cable (1)
-%	 'thread_length':		Threadlength of used screw: default = 12	
-%    'fdm_help_layers':		Activate help Layers for FDM printing
-%    === OUTPUT RESULTS ======
-%    CPL:					CPL of crosssection of top of adapter
-%	 SG:					SG of Adapter
+%SGconnAdaptersLCL([variable_name, value]) - returns the SG of a
+%	connection to a degree of freedom of the LCL robot
+%
+%	This function is meant as a database for all different variations of
+%	connections that can be made to a previous degree of freedom
+%
+%
+%   [SG, CPL] = SGconnAdaptersLCL([variable_name, value])
+%   === INPUT PARAMETERS ===
+%	'adapter_type':		Type of adapter. Rotation x,z,rotLock
+%	'servo':				Servo used for adapters that arent rotLock
+%	'cable':				Hole for cable. default = Cable (1)
+%	'thread_length':		Threadlength of used screw: default = 12	
+%   'fdm_help_layers':		Activate help Layers for FDM printing
+%   === OUTPUT RESULTS ======
+%   CPL:					CPL of crosssection of top of adapter
+%	SG:					SG of Adapter
 function [SG, CPL, conn_dofs] = SGconnAdaptersLCL(varargin)
 
 conn_dofs = {'z','x','y','rotLock','legacy'};

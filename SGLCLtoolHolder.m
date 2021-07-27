@@ -1,18 +1,23 @@
-%%   [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder([variable_name, value])
-%    === INPUT PARAMETERS ===
-%    'width':				Width of toolholder
-%	 'height':				Height of toolholder
-%    'length':				Length of toolholder
-%    'conn_type':			Connection type. e.g. 'rotLock','z'
-%	 'servo':				Servo used for connection bar rotLock	
-%    'output':				If set function writes STLs
-%	 'c_input':				Cell array of above inputs e.g. {'width',20;'height',30}
-%    === OUTPUT RESULTS ======
-%    SG_base:				SG of toolholder main body
-%	 SG_main_body:			SG of variable toolholder body
-%	 SG_final:				SG complete toolholder
-%	 inputsObject:			Input array for object manipulation
-%	 inputsGripper:			Input array for gripper manipulation
+%SGLCLtoolholder([variable_name, value]) - returns basic toolholder for LCL
+%	robot.
+%
+%	Basic toolholder consisting of a basic box to slide a tool into.
+%
+%   [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolholder([variable_name, value])
+%   === INPUT PARAMETERS ===
+%   'width':				Width of toolholder
+%	'height':				Height of toolholder
+%   'length':				Length of toolholder
+%   'conn_type':			Connection type. e.g. 'rotLock','z'
+%	'servo':				Servo used for connection bar rotLock	
+%   'output':				If set function writes STLs
+%	'c_input':				Cell array of above inputs e.g. {'width',20;'height',30}
+%   === OUTPUT RESULTS ======
+%   SG_base:				SG of toolholder main body
+%	SG_main_body:			SG of variable toolholder body
+%	SG_final:				SG complete toolholder
+%	inputsObject:			Input array for object manipulation
+%	inputsGripper:			Input array for gripper manipulation
 function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolHolder(varargin)
 conn_servo = 'sm40bl';
 conn_type = 'rotLock';

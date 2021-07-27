@@ -1,3 +1,16 @@
+% SGfittoOutsideCPL(SG,CPL,dir) - returns projected SG to an given contour
+% 
+%	Function projects a prismatic SG on a given contour in the given
+%	direction
+% 
+% 
+%   [SG] = SGfittoOutsideCPL(SG,CPL,dir)
+%   === INPUT PARAMETERS ===
+%   SG :		SG to project on outside contour
+%	CPL:		Outside contour for projection of SG
+%	dir:		Direction of Projection
+%   === OUTPUT RESULTS ======
+%   SG :		Projected SG
 function [SG] = SGfittoOutsideCPL(SG,CPL,dir)
 
 switch dir

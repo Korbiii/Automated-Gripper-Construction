@@ -1,3 +1,4 @@
+% Function that moves saved file to user specified folder
 function SGsSaveToFolder(name_array)
 	directory = uigetdir;	
 	if ~iscell(name_array)

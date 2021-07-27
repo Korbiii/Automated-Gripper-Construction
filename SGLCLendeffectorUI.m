@@ -1,7 +1,12 @@
-%%   SG = LCLRobot()
-%    === INPUT PARAMETERS ===
-%    === OUTPUT RESULTS ======
-%    
+% LCLRobot() - User Interface to generate Endeffector STLs
+%
+%	This function is an graphical userinterface, that leads the user 
+%	through a process of adapting a endeffector to a object or tool.
+%
+%   SG = LCLRobot()
+%   === INPUT PARAMETERS ===
+%   === OUTPUT RESULTS ======
+%   SG:	Saves SGs needed for Endeffector in user defined folder
 function SG = SGLCLendeffectorUI()
 close all
 

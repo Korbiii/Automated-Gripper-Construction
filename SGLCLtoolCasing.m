@@ -1,3 +1,22 @@
+%SGLCLtoolCasing(varargin) - returns the SGs to create a tool casing for
+%	the LCL robot.
+%
+%	This function returns the SGs and STLs for a 3D printable tool casing
+%	for the LCL robot.
+%
+%   [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolCasing(varargin)
+%   === INPUT PARAMETERS ===
+%   'width':				Width of tool casing
+%	'height':				Height of tool casing
+%   'thickness':			Thickness of tool casing
+%   'output':				If set function writes STLs
+%	'c_input':				Cell array of above inputs e.g. {'grip_H',50;'output'}
+%   === OUTPUT RESULTS ======
+%   SG:						SG of gripper main body
+%	SG_main_body:			SG of variable  part of tool casing
+%	SG_final:				SG complete gripper
+%	inputsObject:			Input array for object manipulation
+%	inputsGripper:			Input array for casing manipulation
 function [SG_base,SG_main_body,SG_complete,inputsObject,inputsGripper] = SGLCLtoolCasing(varargin)
 conn_servo = 'sm40bl';
 conn_type = 'rotLock';

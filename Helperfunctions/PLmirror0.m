@@ -1,8 +1,13 @@
-%%  [PL] = PLmirror0(PL,axis,axis_pos)
+% PLmirror0(PL,axis,axis_pos) - returns a mirrored version of a given PL
+%
+%	MIrrors a PL relative to its own position compared to VLSwap that
+%	mirrors based on origin (0,0).
+% 
+%	[PL] = PLmirror0(PL,axis,axis_pos)
 %	=== INPUT PARAMETERS ===
-%	PL:         PL of contour you want to mirror
-%	axis:       Axis you want to mirror your contour on x or y
-%	mirror_pos:   position of axis in contour 0 = middle of contour
+%	PL:				PL of contour you want to mirror
+%	axis:			Axis you want to mirror your contour on x or y
+%	mirror_pos:		position of axis in contour 0 = middle of contour
 %	=== OUTPUT RESULTS ======
 %	PL:             Mirrored contour
 function [PL] = PLmirror0(PL,axis,varargin)

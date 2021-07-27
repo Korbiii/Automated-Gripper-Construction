@@ -1,7 +1,13 @@
-%%  [PL] = PLcircarc2(PL,radius)
+% PLcircarc2(PL,radius) - returns a tagential circ arc between two points
+%  
+%	Inserts tangential circle at a given position.
+%
+%	[PL] = PLcircarc2(PL,radius)
 %	=== INPUT PARAMETERS ===
-
+%	PL:			PL of points that should be connected with a circ arc
+%	radius:		Radius of circ arc that should be inserted
 %	=== OUTPUT RESULTS ======
+%	PL:			PL with inserted circle arc
 function [PL] = PLcircarc2(PL)
 v1 = PL(1,:)-PL(2,:);
 v1 = v1/norm(v1);

@@ -1,7 +1,12 @@
-%%   SG = LCLRobot()
-%    === INPUT PARAMETERS ===
-%    === OUTPUT RESULTS ======
-%    
+%  LCLRobot() - Leads the user through the generation of LCL DOFs
+%
+%	This function leads the user through a process that sets up the LCL
+%	robots degree of freedoms
+%
+%	SG = LCLRobot()
+%	=== INPUT PARAMETERS ===
+%	=== OUTPUT RESULTS ======
+%	SG:	Outputs all generated SGs in a user chosen folder
 function [SG] = SGLCLdofsUI(varargin)
 close all
 fig_pos = [100 100 1280 720];

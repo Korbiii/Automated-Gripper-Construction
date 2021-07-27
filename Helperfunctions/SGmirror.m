@@ -1,4 +1,9 @@
-%%   [SG] = SGmirror(SG,axis)
+% SGmirror(SG,axis) - returns a mirrored version of a given SG
+% 
+%	This function mirrors an SG on the origin planes and corrects errors
+%	that happen through the use of VLswap
+% 
+%   [SG] = SGmirror(SG,axis)
 %	=== INPUT PARAMETERS ===
 %	SG:    SG you want to mirror
 %	plane: plane you want to mirror on

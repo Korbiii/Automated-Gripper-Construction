@@ -1,7 +1,18 @@
-%%  [PL] = PLroundcorners(PL,indices,varargin)
+% PLroundcorners(PL,indices,varargin) - returns a PL after rounding
+%	specified corners
+% 
+%	This function automates the process of rounding off corners, that has
+%	to be done manually normally.
+% 
+%  [PL] = PLroundcorners(PL,indices,varargin)
 %	=== INPUT PARAMETERS ===
-%	PL:     Contour of PL you to search throguh
+%	PL:				Contour of PL you to search throguh
+%	indices:		Position of corner that should be rounded
+%	radius:			Radius or individual radii of the cornerarc
+%	connection:		Gives the possibility to create different orientated arcs
+%	round:			default = 1; If 0 chamfers instead of arcs.
 %	=== OUTPUT RESULTS ======
+%	PL:				PL after rounding off specified corners 
 function [PL] = PLroundcorners(PL,corner_numbers,varargin)
 radius = ones(1,size(corner_numbers,2)); if nargin>=3 && ~isempty(varargin{1}); radius=varargin{1}; end
 connection = []; if nargin >=4 && ~isempty(varargin{2}); connection = varargin{2}; end

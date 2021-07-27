@@ -1,3 +1,14 @@
+% SGslicebool(SG2slice,SG_object) - returns the result of a substraction
+%	operation of two solids 
+%
+%	This function bools two solids through a number of slices.
+% 
+%	[SG] = SGslicebool(SG2slice,SG_object)
+%	=== INPUT PARAMETERS ===
+%	SG2slice:			SG that the object will be cut out of
+%	SG_object:			SG of object that is used to cut out solid
+%	=== OUTPUT RESULTS ======
+%	SG:					Resulting SG from bool operation
 function [SG] = SGslicebool(SG2slice,SG_object)
 res = 0.15;
 SG = [];		

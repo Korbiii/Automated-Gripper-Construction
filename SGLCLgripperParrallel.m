@@ -1,18 +1,24 @@
-%%   [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGparrallelGripper([variable_name, value])
-%    === INPUT PARAMETERS ===
-%    'jaw_th':				Thickness of gripper jaws
-%	 'opening':				Size of gripper opening. Only visual, doesnt change geometry
-%	 'servo':				Servo used for gripper
-%	 'conn_servo':			Servo in previous degree of freedom	
-%    'conn_type':			Type of connection to previous degree of freedom
-%    'output':				If set function writes STLs
-%	 'c_input':				Cell array of above inputs e.g. {'jaw_th',10;'opening',60}
-%    === OUTPUT RESULTS ======
-%    SG_gripper_body:		SG of gripper main body
-%	 SG_gripper_attachment:	SG of variable gripper parts with reduced alpha value
-%	 SG_final:				SG complete gripper
-%	 inputsObject:			Input array for object manipulation
-%	 inputsGripper:			Input array for gripper manipulation
+% SGparrallelGripper([variable_name, value]) - returns the SGs of a
+%	parallel gripper that is 3D printable
+%
+%	This function generates the SGs and STLs for a parallel gripper that is
+%	based on the design of Andreas Schröffer.
+%
+%   [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGparrallelGripper([variable_name, value])
+%	=== INPUT PARAMETERS ===
+%   'jaw_th':				Thickness of gripper jaws
+%	'opening':				Size of gripper opening. Only visual, doesnt change geometry
+%	'servo':				Servo used for gripper
+%	'conn_servo':			Servo in previous degree of freedom	
+%   'conn_type':			Type of connection to previous degree of freedom
+%   'output':				If set function writes STLs
+%	'c_input':				Cell array of above inputs e.g. {'jaw_th',10;'opening',60}
+%   === OUTPUT RESULTS ======
+%   SG_gripper_body:		SG of gripper main body
+%	SG_gripper_attachment:	SG of variable gripper parts with reduced alpha value
+%	SG_final:				SG complete gripper
+%	inputsObject:			Input array for object manipulation
+%	inputsGripper:			Input array for gripper manipulation
 function [SG_gripper_body,SG_gripper_attachment,SG_final,inputsObject,inputsGripper] = SGLCLgripperParrallel(varargin)
 
 tol=0.5;
